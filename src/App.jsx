@@ -203,7 +203,7 @@ const AppContent = () => {
     <div className="app-with-traces">
       <header className="app-trace-header">
         <div className="header-content">
-          <img src="/logo.png" alt="Professor Logo" className="app-logo" />
+          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Professor Logo" className="app-logo" />
           <h1>Professor</h1>
           {fileName && <span className="file-name">{fileName}</span>}
         </div>
