@@ -13,17 +13,10 @@ const MemoryView = lazy(() => import('./memory/MemoryView'));
 const ModuleView = lazy(() => import('./module/ModuleView'));
 
 const TraceViewer = () => {
-  const { currentView, fileName } = useTraceStore();
+  const { currentView } = useTraceStore();
 
   return (
     <div className="trace-viewer">
-      <header className="trace-header">
-        <div className="header-content">
-          <h1>PyTorch Profiler Analyzer</h1>
-          {fileName && <span className="file-name">{fileName}</span>}
-        </div>
-      </header>
-
       <Navigation />
 
       <main className="trace-content">

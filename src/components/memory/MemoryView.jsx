@@ -1,5 +1,7 @@
 import useTraceStore from '../../store/traceStore';
 import Card from '../common/Card';
+import MemorySummary from './MemorySummary';
+import MemoryCurve from './MemoryCurve';
 import { formatBytes, formatDuration } from '../../utils/formatters';
 import './MemoryView.css';
 
@@ -36,32 +38,71 @@ const MemoryView = () => {
     );
   }
 
+  const getDeviceTypeName = (deviceType) => {
+    if (deviceType === 0) return 'CPU';
+    if (deviceType === 1) return 'CUDA';
+    return 'Unknown';
+  };
+
+  const getOperationType = (bytes) => {
+    if (bytes > 0) return 'Alloc';
+    if (bytes < 0) return 'Free';
+    return 'N/A';
+  };
+
   return (
     <div className="memory-view">
+      <MemorySummary />
+      <MemoryCurve />
       <Card title="Memory Events">
         <div className="memory-table-container">
           <table className="memory-table">
             <thead>
               <tr>
                 <th>Timestamp</th>
-                <th>Name</th>
-                <th>Value</th>
+                <th>Type</th>
+                <th>Device</th>
+                <th>Operation</th>
+                <th>Bytes</th>
+                <th>Total Allocated</th>
+                <th>Total Reserved</th>
+                <th>Address</th>
               </tr>
             </thead>
             <tbody>
-              {memoryEvents.slice(0, 100).map((event, index) => (
+              {memoryEvents.slice(0, 500).map((event, index) => (
                 <tr key={index}>
                   <td>{formatDuration(event.timestamp)}</td>
                   <td>{event.name}</td>
-                  <td>{formatBytes(event.value)}</td>
+                  <td>
+                    {event.deviceType !== undefined ? (
+                      <span className={`device-badge ${getDeviceTypeName(event.deviceType).toLowerCase()}`}>
+                        {getDeviceTypeName(event.deviceType)}
+                        {event.deviceId !== undefined && event.deviceId >= 0 && `:${event.deviceId}`}
+                      </span>
+                    ) : '-'}
+                  </td>
+                  <td>
+                    {event.bytes !== undefined && (
+                      <span className={`op-type ${getOperationType(event.bytes).toLowerCase()}`}>
+                        {getOperationType(event.bytes)}
+                      </span>
+                    )}
+                  </td>
+                  <td>{event.bytes !== undefined ? formatBytes(Math.abs(event.bytes)) : '-'}</td>
+                  <td>{event.totalAllocated !== undefined ? formatBytes(event.totalAllocated) : '-'}</td>
+                  <td>{event.totalReserved !== undefined ? formatBytes(event.totalReserved) : '-'}</td>
+                  <td className="addr-cell">
+                    {event.addr ? `0x${event.addr.toString(16)}` : '-'}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {memoryEvents.length > 100 && (
+        {memoryEvents.length > 500 && (
           <div className="memory-note">
-            Showing first 100 of {memoryEvents.length} memory events
+            Showing first 500 of {memoryEvents.length} memory events
           </div>
         )}
       </Card>

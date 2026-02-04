@@ -1,6 +1,10 @@
 .memory-view {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .memory-table-container {
@@ -51,4 +55,58 @@
   color: #9ca3af;
   text-align: center;
   font-size: 0.875rem;
+}
+
+.device-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.device-badge.cpu {
+  background: #1e40af;
+  color: #bfdbfe;
+}
+
+.device-badge.cuda {
+  background: #15803d;
+  color: #bbf7d0;
+}
+
+.device-badge.unknown {
+  background: #4b5563;
+  color: #d1d5db;
+}
+
+.op-type {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.op-type.alloc {
+  background: #065f46;
+  color: #6ee7b7;
+}
+
+.op-type.free {
+  background: #7c2d12;
+  color: #fed7aa;
+}
+
+.op-type.n\/a {
+  background: #374151;
+  color: #9ca3af;
+}
+
+.addr-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: #9ca3af;
 }

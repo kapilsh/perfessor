@@ -220,11 +220,15 @@ const aggregateOperators = (events, metadata) => {
   const totalDeviceTime = Object.values(aggregated).reduce(
     (sum, op) => sum + op.deviceSelfDuration, 0
   );
+  const totalHostTime = Object.values(aggregated).reduce(
+    (sum, op) => sum + op.hostSelfDuration, 0
+  );
 
   return Object.values(aggregated).map(op => ({
     ...op,
     inputShapes: Array.from(op.inputShapes),
     selfCudaTimePercent: totalDeviceTime > 0 ? (op.deviceSelfDuration / totalDeviceTime) * 100 : 0,
+    selfCpuTimePercent: totalHostTime > 0 ? (op.hostSelfDuration / totalHostTime) * 100 : 0,
     avgDuration: (op.deviceTotalDuration + op.hostTotalDuration) / op.calls,
   })).sort((a, b) => b.deviceSelfDuration - a.deviceSelfDuration);
 };
@@ -383,13 +387,20 @@ export const processTraceData = (rawData) => {
     // Step 9: Calculate GPU utilization
     const gpuUtilization = calculateGPUUtilization(eventsWithSelfTime, totalDuration);
 
-    // Step 10: Extract memory events (counter events)
+    // Step 10: Extract memory events (PyTorch uses instant events with name "[memory]")
     const memoryEvents = completeEvents
-      .filter(e => e.ph === 'C' && e.name && e.name.toLowerCase().includes('memory'))
+      .filter(e => (e.ph === 'i' && e.name === '[memory]') ||
+                   (e.ph === 'C' && e.name && e.name.toLowerCase().includes('memory')))
       .map(e => ({
         timestamp: e.ts,
         name: e.name,
-        value: e.args ? Object.values(e.args)[0] : 0,
+        bytes: e.args?.Bytes || 0,
+        addr: e.args?.Addr,
+        totalAllocated: e.args?.['Total Allocated'] || 0,
+        totalReserved: e.args?.['Total Reserved'] || 0,
+        deviceId: e.args?.['Device Id'],
+        deviceType: e.args?.['Device Type'], // 0 = CPU, 1 = CUDA
+        value: e.args?.['Total Allocated'] || (e.args ? Object.values(e.args)[0] : 0),
         args: e.args,
       }));
 

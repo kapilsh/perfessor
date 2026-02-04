@@ -80,7 +80,7 @@ class ErrorBoundary extends Component {
 }
 
 const AppContent = () => {
-  const { traces, isLoading, error } = useTraceStore();
+  const { traces, fileName, isLoading, error } = useTraceStore();
 
   if (isLoading) {
     return (
@@ -201,11 +201,22 @@ const AppContent = () => {
 
   return (
     <div className="app-with-traces">
-      <div className="app-header">
-        <TraceSelector />
-        <AddTraceButton />
+      <header className="app-trace-header">
+        <div className="header-content">
+          <img src="/logo.png" alt="Professor Logo" className="app-logo" />
+          <h1>Professor</h1>
+          {fileName && <span className="file-name">{fileName}</span>}
+        </div>
+      </header>
+      <div className="app-body">
+        <div className="app-sidebar">
+          <AddTraceButton />
+          <TraceSelector />
+        </div>
+        <div className="app-main">
+          <TraceViewer />
+        </div>
       </div>
-      <TraceViewer />
     </div>
   );
 };

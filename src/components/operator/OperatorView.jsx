@@ -46,25 +46,37 @@ const OperatorView = () => {
       },
       {
         accessorKey: 'deviceSelfDuration',
-        header: 'Device Self',
+        header: 'CUDA Self',
         cell: (info) => formatDuration(info.getValue()),
         sortingFn: 'basic',
       },
       {
         accessorKey: 'deviceTotalDuration',
-        header: 'Device Total',
+        header: 'CUDA Total',
         cell: (info) => formatDuration(info.getValue()),
         sortingFn: 'basic',
       },
       {
         accessorKey: 'hostSelfDuration',
-        header: 'Host Self',
+        header: 'CPU Self',
+        cell: (info) => formatDuration(info.getValue()),
+        sortingFn: 'basic',
+      },
+      {
+        accessorKey: 'hostTotalDuration',
+        header: 'CPU Total',
         cell: (info) => formatDuration(info.getValue()),
         sortingFn: 'basic',
       },
       {
         accessorKey: 'selfCudaTimePercent',
-        header: '% CUDA',
+        header: '% CUDA Time',
+        cell: (info) => `${info.getValue().toFixed(1)}%`,
+        sortingFn: 'basic',
+      },
+      {
+        accessorKey: 'selfCpuTimePercent',
+        header: '% CPU Time',
         cell: (info) => `${info.getValue().toFixed(1)}%`,
         sortingFn: 'basic',
       },
@@ -105,14 +117,16 @@ const OperatorView = () => {
     if (!operators) return;
 
     const csvRows = [
-      ['Operation Name', 'Calls', 'Device Self (μs)', 'Device Total (μs)', 'Host Self (μs)', '% CUDA'],
+      ['Operation Name', 'Calls', 'CUDA Self (μs)', 'CUDA Total (μs)', 'CPU Self (μs)', 'CPU Total (μs)', '% CUDA Time', '% CPU Time'],
       ...operators.map(op => [
         op.name,
         op.calls,
         op.deviceSelfDuration,
         op.deviceTotalDuration,
         op.hostSelfDuration,
+        op.hostTotalDuration,
         op.selfCudaTimePercent,
+        op.selfCpuTimePercent,
       ]),
     ];
 
@@ -234,16 +248,20 @@ const OperatorView = () => {
               <span className="detail-value">{selectedOperator.calls.toLocaleString()}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Device Self Duration:</span>
+              <span className="detail-label">CUDA Self Duration:</span>
               <span className="detail-value">{formatDuration(selectedOperator.deviceSelfDuration)}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Device Total Duration:</span>
+              <span className="detail-label">CUDA Total Duration:</span>
               <span className="detail-value">{formatDuration(selectedOperator.deviceTotalDuration)}</span>
             </div>
             <div className="detail-row">
-              <span className="detail-label">Host Self Duration:</span>
+              <span className="detail-label">CPU Self Duration:</span>
               <span className="detail-value">{formatDuration(selectedOperator.hostSelfDuration)}</span>
+            </div>
+            <div className="detail-row">
+              <span className="detail-label">CPU Total Duration:</span>
+              <span className="detail-value">{formatDuration(selectedOperator.hostTotalDuration)}</span>
             </div>
             <div className="detail-row">
               <span className="detail-label">Min Duration:</span>
@@ -333,7 +351,7 @@ const OperatorView = () => {
 
         .operator-table thead tr {
           display: grid;
-          grid-template-columns: minmax(200px, 2fr) repeat(5, minmax(120px, 1fr));
+          grid-template-columns: minmax(200px, 2fr) 100px repeat(4, minmax(120px, 1fr)) repeat(2, 110px);
           gap: 0;
         }
 
@@ -372,7 +390,7 @@ const OperatorView = () => {
 
         .table-row {
           display: grid;
-          grid-template-columns: minmax(200px, 2fr) repeat(5, minmax(120px, 1fr));
+          grid-template-columns: minmax(200px, 2fr) 100px repeat(4, minmax(120px, 1fr)) repeat(2, 110px);
           gap: 0;
           border-bottom: 1px solid #374151;
           cursor: pointer;

@@ -87,21 +87,75 @@ body {
   flex-direction: column;
 }
 
-.app-header {
-  background: #111827;
+.app-trace-header {
+  width: 100%;
+  background: #1f2937;
+  border-bottom: 2px solid #374151;
   padding: 1rem 2rem;
-  border-bottom: 1px solid #374151;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.app-header .trace-selector {
-  flex: 1;
-  max-width: 600px;
-  margin-bottom: 0;
-}
-
-.app-header .add-trace-button-container {
   flex-shrink: 0;
+}
+
+.app-trace-header .header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-trace-header .app-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.app-trace-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.app-trace-header .file-name {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-family: monospace;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-sidebar {
+  width: 280px;
+  background: #111827;
+  border-right: 1px solid #374151;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.app-sidebar .add-trace-button-container {
+  padding: 1rem;
+  border-bottom: 1px solid #374151;
+}
+
+.app-sidebar .add-trace-button {
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.app-sidebar .trace-selector {
+  margin: 0;
+  flex: 1;
+}
+
+.app-main {
+  flex: 1;
+  overflow-x: hidden;
+  background: #111827;
 }

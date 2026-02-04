@@ -1,16 +1,12 @@
-import { useState } from 'react';
 import useTraceStore from '../store/traceStore';
 import './TraceSelector.css';
 
 const TraceSelector = () => {
   const { traces, activeTraceId, setActiveTrace, removeTrace } = useTraceStore();
-  const [isOpen, setIsOpen] = useState(false);
 
   if (traces.length === 0) {
     return null;
   }
-
-  const activeTrace = traces.find(t => t.id === activeTraceId);
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
@@ -30,7 +26,6 @@ const TraceSelector = () => {
 
   const handleTraceSelect = (traceId) => {
     setActiveTrace(traceId);
-    setIsOpen(false);
   };
 
   const handleTraceRemove = (e, traceId) => {
@@ -39,76 +34,58 @@ const TraceSelector = () => {
   };
 
   return (
-    <div className="trace-selector">
-      <button
-        className="trace-selector-button"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <div className="trace-selector-label">
-          <span className="trace-count">{traces.length} trace{traces.length !== 1 ? 's' : ''}</span>
-          <span className="trace-name">{activeTrace?.fileName || 'No trace selected'}</span>
-        </div>
-        <svg
-          className={`chevron ${isOpen ? 'open' : ''}`}
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+    <div className="trace-list">
+      {traces.map((trace) => (
+        <div
+          key={trace.id}
+          className={`trace-list-item ${trace.id === activeTraceId ? 'active' : ''}`}
+          onClick={() => handleTraceSelect(trace.id)}
         >
-          <polyline points="4 6 8 10 12 6" />
-        </svg>
-      </button>
-
-      {isOpen && (
-        <>
-          <div className="trace-selector-backdrop" onClick={() => setIsOpen(false)} />
-          <div className="trace-selector-dropdown">
-            {traces.map((trace) => (
-              <div
-                key={trace.id}
-                className={`trace-item ${trace.id === activeTraceId ? 'active' : ''}`}
-                onClick={() => handleTraceSelect(trace.id)}
+          <div className="trace-list-item-header">
+            <svg
+              className="trace-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            <span className="trace-list-item-name" title={trace.fileName}>
+              {trace.fileName}
+            </span>
+            <button
+              className="trace-list-item-remove"
+              onClick={(e) => handleTraceRemove(e, trace.id)}
+              title="Remove trace"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <div className="trace-item-header">
-                  <span className="trace-item-name" title={trace.fileName}>
-                    {trace.fileName}
-                  </span>
-                  <button
-                    className="trace-item-remove"
-                    onClick={(e) => handleTraceRemove(e, trace.id)}
-                    title="Remove trace"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="trace-item-meta">
-                  <span>{formatDate(trace.uploadedAt)}</span>
-                  <span>•</span>
-                  <span>{formatDuration(trace.summary?.totalDuration || 0)}</span>
-                  <span>•</span>
-                  <span>{trace.operators?.length || 0} ops</span>
-                </div>
-              </div>
-            ))}
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
           </div>
-        </>
-      )}
+          <div className="trace-list-item-meta">
+            <span className="trace-meta-item">{formatDate(trace.uploadedAt)}</span>
+            <span className="trace-meta-separator">•</span>
+            <span className="trace-meta-item">{formatDuration(trace.summary?.totalDuration || 0)}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

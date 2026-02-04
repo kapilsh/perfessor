@@ -3,7 +3,7 @@ import Card from '../common/Card';
 import SummaryCards from './SummaryCards';
 import StepTimeBreakdown from './StepTimeBreakdown';
 import PerformanceRecommendations from './PerformanceRecommendations';
-import GPUUtilization from './GPUUtilization';
+import GPUTimeline from './GPUTimeline';
 import './OverviewView.css';
 
 const OverviewView = () => {
@@ -53,7 +53,7 @@ const OverviewView = () => {
           </Card>
         )}
 
-        <GPUUtilization />
+        <GPUTimeline />
 
         <StepTimeBreakdown />
 

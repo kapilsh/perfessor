@@ -1,0 +1,127 @@
+.step-breakdown-header {
+  margin-bottom: 1.5rem;
+}
+
+.breakdown-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.breakdown-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: #111827;
+  border-radius: 6px;
+  border: 1px solid #374151;
+}
+
+.breakdown-stat .stat-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.breakdown-stat .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.breakdown-description {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  padding: 0.75rem;
+  background: #111827;
+  border-radius: 6px;
+  border-left: 3px solid #6366f1;
+}
+
+.step-breakdown-tooltip {
+  background: #1f2937;
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.step-breakdown-tooltip .tooltip-header {
+  font-size: 0.875rem;
+  color: #f3f4f6;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #374151;
+}
+
+.step-breakdown-tooltip .tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.step-breakdown-tooltip .tooltip-row:last-child {
+  margin-bottom: 0;
+}
+
+.step-breakdown-tooltip .tooltip-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.step-breakdown-tooltip .tooltip-value {
+  font-size: 0.875rem;
+  color: #f3f4f6;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.breakdown-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #374151;
+}
+
+.breakdown-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.breakdown-legend .legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+/* Subtle hover effect for bars */
+.recharts-bar-rectangle:hover {
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.recharts-bar-rectangle {
+  transition: opacity 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .breakdown-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

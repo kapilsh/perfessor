@@ -1,6 +1,8 @@
-# PyTorch Profiler Visualization App
+# Professor 🧠
 
 A comprehensive web-based visualization tool for PyTorch profiler traces, inspired by TensorBoard's profiler plugin. Built with React 19, this application provides interactive analysis of profiling data using Perfetto UI for trace visualization.
+
+**🌐 Live Demo**: [https://kapilsharma.dev/professor/](https://kapilsharma.dev/professor/)
 
 ![React](https://img.shields.io/badge/React-19-blue)
 ![Vite](https://img.shields.io/badge/Vite-7.3-purple)
@@ -75,6 +77,19 @@ The application will be available at `http://localhost:5173`
 npm run build
 npm run preview
 ```
+
+### Deploy to GitHub Pages
+
+The app is configured to automatically deploy to GitHub Pages on every push to the `main` branch using GitHub Actions. The deployment workflow:
+
+1. Builds the app to the `docs` folder
+2. Uploads the build artifact
+3. Deploys to GitHub Pages
+
+To enable GitHub Pages for your repository:
+1. Go to repository Settings → Pages
+2. Set Source to "GitHub Actions"
+3. Push to `main` branch to trigger deployment
 
 ## Usage
 
