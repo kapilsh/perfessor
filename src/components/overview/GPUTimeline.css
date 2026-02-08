@@ -97,3 +97,31 @@
   border-radius: 3px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Remove focus outline from chart elements */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-layer,
+.recharts-bar-rectangle,
+.recharts-area,
+.recharts-line,
+.recharts-responsive-container,
+.recharts-wrapper > *,
+div[class*="recharts"] {
+  outline: none;
+}
+
+.recharts-wrapper:focus,
+.recharts-surface:focus,
+.recharts-responsive-container:focus,
+.recharts-wrapper:focus-visible,
+.recharts-surface:focus-visible,
+.recharts-responsive-container:focus-visible {
+  outline: none;
+}
+
+/* Target parent containers */
+.gpu-timeline-header *:focus,
+.recharts-wrapper *:focus {
+  outline: none;
+}

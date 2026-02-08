@@ -24,6 +24,11 @@
   align-items: center;
   gap: 0.5rem;
   white-space: nowrap;
+  outline: none;
+}
+
+.nav-tab:focus {
+  outline: none;
 }
 
 .nav-tab:hover {
