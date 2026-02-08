@@ -81,14 +81,26 @@ class ErrorBoundary extends Component {
 }
 
 const AppContent = () => {
-  const { traces, fileName, isLoading, error } = useTraceStore();
+  const { traces, fileName, isLoading, error, progress } = useTraceStore();
 
   if (isLoading) {
     return (
       <div className="loading-screen">
         <div className="spinner-large" />
         <h2>Processing trace file...</h2>
-        <p>This may take a moment for large files</p>
+        {progress ? (
+          <>
+            <div className="progress-bar-container">
+              <div className="progress-bar" style={{ width: `${progress.percent}%` }} />
+            </div>
+            <p className="progress-message">{progress.message}</p>
+            <p style={{ color: '#6b7280', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+              {progress.stage} - {progress.percent.toFixed(1)}%
+            </p>
+          </>
+        ) : (
+          <p>This may take a moment for large files</p>
+        )}
         <style>{`
           .loading-screen {
             display: flex;
@@ -128,6 +140,29 @@ const AppContent = () => {
             color: #9ca3af;
             font-size: clamp(0.875rem, 3vw, 1rem);
             text-align: center;
+          }
+
+          .progress-bar-container {
+            width: 100%;
+            max-width: 500px;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1.5rem 0 0.75rem 0;
+          }
+
+          .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+          }
+
+          .progress-message {
+            font-size: 0.9rem;
+            color: #d1d5db;
+            margin-top: 0.5rem;
           }
         `}</style>
       </div>

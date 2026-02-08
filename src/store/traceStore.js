@@ -11,6 +11,7 @@ const useTraceStore = create((set, get) => ({
   activeTraceId: null,
   isLoading: false,
   error: null,
+  progress: null, // { stage, percent, message }
 
   // View state
   currentView: 'overview',
@@ -126,7 +127,9 @@ const useTraceStore = create((set, get) => ({
 
   setLoading: (isLoading) => set({ isLoading }),
 
-  setError: (error) => set({ error, isLoading: false }),
+  setError: (error) => set({ error, isLoading: false, progress: null }),
+
+  setProgress: (progress) => set({ progress, isLoading: progress !== null }),
 
   setView: (view) => set({ currentView: view }),
 

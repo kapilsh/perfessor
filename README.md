@@ -132,13 +132,19 @@ prof.export_chrome_trace("trace.json")
 
 **📚 For more information on PyTorch profiling**, see the [PyTorch Profiler Recipe](https://docs.pytorch.org/tutorials/recipes/recipes/profiler_recipe.html).
 
+**⚠️ Large Files (>1GB)**: For files exceeding 1GB, consider:
+- Reducing profiling duration or frequency
+- Using `schedule` parameter to profile fewer steps
+- Analyzing the trace on the command line with PyTorch's built-in tools
+- Splitting the trace into smaller segments
+
 ### 2. Upload & Analyze
 
 1. **Upload Trace**:
    - Drag and drop your `trace.json` file onto the upload zone
    - Or click "Browse Files" to select
    - Supports `.json` and `.pt.trace.json` files
-   - Maximum file size: 100MB
+   - **Maximum file size: 1GB**
 
 2. **Navigate Views** (Keyboard shortcuts):
    - `1` - Overall View

@@ -1,13 +1,33 @@
-import { classifyEvent, isGPUEvent, isCPUEvent, isKernelEvent, hasTensorCoreSupport } from './eventClassifier';
+/* eslint-disable no-restricted-globals */
+// Web Worker for processing large trace files off the main thread
+
+import { classifyEvent, isGPUEvent, isCPUEvent, isKernelEvent, hasTensorCoreSupport } from '../utils/eventClassifier';
+
+// Send progress updates to main thread
+const reportProgress = (stage, percent, message) => {
+  self.postMessage({
+    type: 'progress',
+    stage,
+    percent,
+    message,
+  });
+};
 
 // Convert Begin/End pairs to Complete events
 const convertBeginEndToComplete = (events) => {
   const completeEvents = [];
-  const stacks = {}; // key: `${pid}_${tid}_${name}`
+  const stacks = {};
+  const total = events.length;
+  let processed = 0;
 
   for (const event of events) {
+    if (processed % 50000 === 0) {
+      reportProgress('convert', (processed / total) * 100, `Converting events: ${processed.toLocaleString()}/${total.toLocaleString()}`);
+    }
+
     if (event.ph === 'X') {
       completeEvents.push(event);
+      processed++;
       continue;
     }
 
@@ -26,15 +46,15 @@ const convertBeginEndToComplete = (events) => {
         });
       }
     } else {
-      // Keep instant, metadata, counter, and async events
       completeEvents.push(event);
     }
+    processed++;
   }
 
   return completeEvents;
 };
 
-// Extract GPU metadata from PyTorch trace
+// Extract GPU metadata
 const extractGPUInfo = (rawData, events) => {
   const gpuInfo = {
     name: 'Unknown GPU',
@@ -42,41 +62,29 @@ const extractGPUInfo = (rawData, events) => {
     computeCapability: 'Unknown',
   };
 
-  // First, check if there's deviceProperties in the raw data (PyTorch format)
   if (rawData && rawData.deviceProperties && Array.isArray(rawData.deviceProperties)) {
-    const device = rawData.deviceProperties[0]; // Get first GPU
+    const device = rawData.deviceProperties[0];
     if (device) {
-      if (device.name) {
-        gpuInfo.name = device.name;
-      }
-      if (device.totalGlobalMem) {
-        gpuInfo.memory = device.totalGlobalMem;
-      }
+      if (device.name) gpuInfo.name = device.name;
+      if (device.totalGlobalMem) gpuInfo.memory = device.totalGlobalMem;
       if (device.computeMajor !== undefined && device.computeMinor !== undefined) {
         gpuInfo.computeCapability = `${device.computeMajor}.${device.computeMinor}`;
       }
     }
   }
 
-  // Fallback: check metadata events
   events.forEach(event => {
     if (event.ph === 'm' && event.args) {
-      if (event.args.device_name) {
-        gpuInfo.name = event.args.device_name;
-      }
-      if (event.args.device_memory) {
-        gpuInfo.memory = event.args.device_memory;
-      }
-      if (event.args.compute_capability) {
-        gpuInfo.computeCapability = event.args.compute_capability;
-      }
+      if (event.args.device_name) gpuInfo.name = event.args.device_name;
+      if (event.args.device_memory) gpuInfo.memory = event.args.device_memory;
+      if (event.args.compute_capability) gpuInfo.computeCapability = event.args.compute_capability;
     }
   });
 
   return gpuInfo;
 };
 
-// Extract metadata events
+// Extract metadata
 const extractMetadata = (events) => {
   const metadata = {
     processNames: {},
@@ -99,8 +107,10 @@ const extractMetadata = (events) => {
   return metadata;
 };
 
-// Build call hierarchy using timestamps
+// Build call hierarchy
 const buildCallHierarchy = (events) => {
+  reportProgress('hierarchy', 0, 'Building call hierarchy...');
+
   const completeEvents = events.filter(e => e.ph === 'X' && e.dur !== undefined);
   completeEvents.sort((a, b) => a.ts - b.ts);
 
@@ -112,6 +122,8 @@ const buildCallHierarchy = (events) => {
   });
 
   const eventsWithHierarchy = [];
+  const threadKeys = Object.keys(threadGroups);
+  let processedThreads = 0;
 
   Object.values(threadGroups).forEach(threadEvents => {
     const stack = [];
@@ -142,30 +154,67 @@ const buildCallHierarchy = (events) => {
         id: eventsWithHierarchy.length - 1,
       });
     });
+
+    processedThreads++;
+    reportProgress('hierarchy', (processedThreads / threadKeys.length) * 100,
+      `Processing threads: ${processedThreads}/${threadKeys.length}`);
   });
 
   return eventsWithHierarchy;
 };
 
-// Calculate self-time by subtracting child durations
+// Calculate self-times (optimized to O(n) instead of O(n²))
 const calculateSelfTimes = (events) => {
-  return events.map(event => {
-    const children = events.filter(e => e.parent === event.id);
+  reportProgress('selftime', 0, 'Calculating self times...');
+  const total = events.length;
+
+  // Build parent->children lookup map (O(n))
+  reportProgress('selftime', 10, 'Building hierarchy map...');
+  const childrenMap = new Map();
+  for (const event of events) {
+    if (event.parent !== null && event.parent !== undefined) {
+      if (!childrenMap.has(event.parent)) {
+        childrenMap.set(event.parent, []);
+      }
+      childrenMap.get(event.parent).push(event);
+    }
+  }
+
+  // Calculate self times using the map (O(n))
+  reportProgress('selftime', 30, 'Calculating self times...');
+  const result = [];
+
+  for (let idx = 0; idx < events.length; idx++) {
+    if (idx % 50000 === 0) {
+      reportProgress('selftime', 30 + ((idx / total) * 70), `Processing: ${idx.toLocaleString()}/${total.toLocaleString()}`);
+    }
+
+    const event = events[idx];
+    const children = childrenMap.get(event.id) || [];
     const childrenTotalDur = children.reduce((sum, child) => sum + child.dur, 0);
     const selfTime = event.dur - childrenTotalDur;
 
-    return {
+    result.push({
       ...event,
       selfTime: Math.max(0, selfTime),
-    };
-  });
+    });
+  }
+
+  reportProgress('selftime', 100, `Completed: ${total.toLocaleString()} events`);
+  return result;
 };
 
-// Aggregate operations by name
-const aggregateOperators = (events, metadata) => {
+// Aggregate operators
+const aggregateOperators = (events) => {
+  reportProgress('aggregate', 0, 'Aggregating operators...');
   const aggregated = {};
+  const total = events.length;
 
-  events.forEach(event => {
+  events.forEach((event, idx) => {
+    if (idx % 20000 === 0) {
+      reportProgress('aggregate', (idx / total) * 100, `Processing: ${idx.toLocaleString()}/${total.toLocaleString()}`);
+    }
+
     if (event.ph !== 'X') return;
 
     const name = event.name;
@@ -184,8 +233,6 @@ const aggregateOperators = (events, metadata) => {
         minDuration: Infinity,
         maxDuration: 0,
         inputShapes: new Set(),
-        callStack: [],
-        invocations: [],
       };
     }
 
@@ -202,21 +249,11 @@ const aggregateOperators = (events, metadata) => {
     aggregated[name].minDuration = Math.min(aggregated[name].minDuration, event.dur);
     aggregated[name].maxDuration = Math.max(aggregated[name].maxDuration, event.dur);
 
-    // Track input shapes if available
     if (event.args && event.args['Input Dims']) {
       aggregated[name].inputShapes.add(JSON.stringify(event.args['Input Dims']));
     }
-
-    // Store invocations
-    aggregated[name].invocations.push({
-      timestamp: event.ts,
-      duration: event.dur,
-      selfTime: event.selfTime || event.dur,
-      args: event.args,
-    });
   });
 
-  // Convert to array and calculate percentages
   const totalDeviceTime = Object.values(aggregated).reduce(
     (sum, op) => sum + op.deviceSelfDuration, 0
   );
@@ -233,8 +270,9 @@ const aggregateOperators = (events, metadata) => {
   })).sort((a, b) => b.deviceSelfDuration - a.deviceSelfDuration);
 };
 
-// Aggregate kernel statistics
+// Aggregate kernels
 const aggregateKernels = (events) => {
+  reportProgress('kernels', 0, 'Aggregating kernels...');
   const aggregated = {};
 
   events.forEach(event => {
@@ -260,7 +298,6 @@ const aggregateKernels = (events) => {
     aggregated[name].minDuration = Math.min(aggregated[name].minDuration, event.dur);
     aggregated[name].maxDuration = Math.max(aggregated[name].maxDuration, event.dur);
 
-    // Extract kernel-specific metrics if available
     if (event.args) {
       if (event.args['Blocks Per SM']) {
         aggregated[name].blocksPerSM.push(event.args['Blocks Per SM']);
@@ -307,10 +344,8 @@ const calculateStepTimeBreakdown = (events) => {
     }
   });
 
-  // Calculate total
   const total = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
 
-  // Convert to array with percentages
   return Object.entries(breakdown).map(([name, time]) => ({
     name,
     time,
@@ -318,114 +353,131 @@ const calculateStepTimeBreakdown = (events) => {
   }));
 };
 
-// Calculate GPU utilization estimate
+// Calculate GPU utilization
 const calculateGPUUtilization = (events, totalDuration) => {
   const gpuEvents = events.filter(e => isGPUEvent(e) && e.ph === 'X');
 
   if (gpuEvents.length === 0 || totalDuration === 0) return 0;
 
-  // Sum GPU time (this is a rough estimate)
   const totalGPUTime = gpuEvents.reduce((sum, e) => sum + (e.selfTime || e.dur), 0);
-
-  // GPU utilization as percentage
   return Math.min(100, (totalGPUTime / totalDuration) * 100);
 };
 
-// Main processing function
-export const processTraceData = (rawData) => {
-  try {
-    // Parse JSON if it's a string
-    const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+// Main worker message handler
+self.onmessage = async (e) => {
+  const { type, data } = e.data;
 
-    // Extract events array
-    let events = [];
-    if (Array.isArray(data)) {
-      events = data;
-    } else if (data.traceEvents && Array.isArray(data.traceEvents)) {
-      events = data.traceEvents;
-    } else {
-      throw new Error('Invalid trace format: expected array or object with traceEvents property');
+  if (type === 'process') {
+    try {
+      const overallStartTime = performance.now();
+      reportProgress('parse', 0, 'Parsing JSON... (this may take a minute for large files)');
+
+      // Parse JSON - this is the slowest part for large files
+      const parseStartTime = performance.now();
+      const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+      const parseTime = ((performance.now() - parseStartTime) / 1000).toFixed(1);
+
+      reportProgress('parse', 100, `JSON parsed successfully in ${parseTime}s`);
+
+      // Extract events
+      let events = [];
+      if (Array.isArray(parsedData)) {
+        events = parsedData;
+      } else if (parsedData.traceEvents && Array.isArray(parsedData.traceEvents)) {
+        events = parsedData.traceEvents;
+      } else {
+        throw new Error('Invalid trace format');
+      }
+
+      if (events.length === 0) {
+        throw new Error('No events found in trace file');
+      }
+
+      reportProgress('start', 0, `Processing ${events.length.toLocaleString()} events...`);
+
+      // Step 1: Convert events
+      const completeEvents = convertBeginEndToComplete(events);
+
+      // Step 2: Extract metadata
+      reportProgress('metadata', 0, 'Extracting metadata...');
+      const metadata = extractMetadata(completeEvents);
+      const gpuInfo = extractGPUInfo(parsedData, completeEvents);
+
+      // Step 3: Build hierarchy
+      const eventsWithHierarchy = buildCallHierarchy(completeEvents);
+
+      // Step 4: Calculate self-times
+      const eventsWithSelfTime = calculateSelfTimes(eventsWithHierarchy);
+
+      // Step 5: Aggregate operators
+      const operators = aggregateOperators(eventsWithSelfTime);
+
+      // Step 6: Aggregate kernels
+      const kernels = aggregateKernels(eventsWithSelfTime);
+
+      // Step 7: Calculate breakdown
+      reportProgress('breakdown', 0, 'Calculating time breakdown...');
+      const stepTimeBreakdown = calculateStepTimeBreakdown(eventsWithSelfTime);
+
+      // Step 8: Calculate summary
+      reportProgress('summary', 0, 'Calculating summary statistics...');
+      const completeEventsOnly = eventsWithSelfTime.filter(e => e.ph === 'X' && e.dur !== undefined);
+
+      const startTime = completeEventsOnly.reduce((min, e) => Math.min(min, e.ts), Infinity);
+      const endTime = completeEventsOnly.reduce((max, e) => Math.max(max, e.ts + e.dur), 0);
+      const totalDuration = endTime - startTime;
+
+      const gpuUtilization = calculateGPUUtilization(eventsWithSelfTime, totalDuration);
+
+      // Extract memory events
+      const memoryEvents = completeEvents
+        .filter(e => (e.ph === 'i' && e.name === '[memory]') ||
+                     (e.ph === 'C' && e.name && e.name.toLowerCase().includes('memory')))
+        .map(e => ({
+          timestamp: e.ts,
+          name: e.name,
+          bytes: e.args?.Bytes || 0,
+          addr: e.args?.Addr,
+          totalAllocated: e.args?.['Total Allocated'] || 0,
+          totalReserved: e.args?.['Total Reserved'] || 0,
+          deviceId: e.args?.['Device Id'],
+          deviceType: e.args?.['Device Type'],
+          value: e.args?.['Total Allocated'] || (e.args ? Object.values(e.args)[0] : 0),
+          args: e.args,
+        }));
+
+      const totalTime = ((performance.now() - overallStartTime) / 1000).toFixed(1);
+      reportProgress('complete', 100, `Processing complete in ${totalTime}s!`);
+
+      // Send final result
+      self.postMessage({
+        type: 'complete',
+        result: {
+          events: eventsWithSelfTime,
+          metadata,
+          operators,
+          kernels,
+          memoryEvents,
+          modules: [],
+          stepTimeBreakdown,
+          gpuUtilization,
+          gpuInfo,
+          recommendations: [],
+          summary: {
+            totalDuration,
+            eventCount: events.length,
+            operatorCount: operators.length,
+            kernelCount: kernels.length,
+            startTime,
+            endTime,
+          },
+        },
+      });
+    } catch (error) {
+      self.postMessage({
+        type: 'error',
+        error: error.message,
+      });
     }
-
-    if (events.length === 0) {
-      throw new Error('No events found in trace file');
-    }
-
-    // Step 1: Convert Begin/End pairs to Complete events
-    const completeEvents = convertBeginEndToComplete(events);
-
-    // Step 2: Extract metadata and GPU info
-    const metadata = extractMetadata(completeEvents);
-    const gpuInfo = extractGPUInfo(data, completeEvents);
-
-    // Step 3: Build call hierarchy
-    const eventsWithHierarchy = buildCallHierarchy(completeEvents);
-
-    // Step 4: Calculate self-times
-    const eventsWithSelfTime = calculateSelfTimes(eventsWithHierarchy);
-
-    // Step 5: Aggregate operators
-    const operators = aggregateOperators(eventsWithSelfTime, metadata);
-
-    // Step 6: Aggregate kernels
-    const kernels = aggregateKernels(eventsWithSelfTime);
-
-    // Step 7: Calculate step time breakdown
-    const stepTimeBreakdown = calculateStepTimeBreakdown(eventsWithSelfTime);
-
-    // Step 8: Calculate summary statistics
-    const completeEventsOnly = eventsWithSelfTime.filter(e => e.ph === 'X' && e.dur !== undefined);
-
-    if (completeEventsOnly.length === 0) {
-      throw new Error('No complete events found in trace');
-    }
-
-    const startTime = completeEventsOnly.reduce((min, e) => Math.min(min, e.ts), Infinity);
-    const endTime = completeEventsOnly.reduce((max, e) => Math.max(max, e.ts + e.dur), 0);
-    const totalDuration = endTime - startTime;
-
-    // Step 9: Calculate GPU utilization
-    const gpuUtilization = calculateGPUUtilization(eventsWithSelfTime, totalDuration);
-
-    // Step 10: Extract memory events (PyTorch uses instant events with name "[memory]")
-    const memoryEvents = completeEvents
-      .filter(e => (e.ph === 'i' && e.name === '[memory]') ||
-                   (e.ph === 'C' && e.name && e.name.toLowerCase().includes('memory')))
-      .map(e => ({
-        timestamp: e.ts,
-        name: e.name,
-        bytes: e.args?.Bytes || 0,
-        addr: e.args?.Addr,
-        totalAllocated: e.args?.['Total Allocated'] || 0,
-        totalReserved: e.args?.['Total Reserved'] || 0,
-        deviceId: e.args?.['Device Id'],
-        deviceType: e.args?.['Device Type'], // 0 = CPU, 1 = CUDA
-        value: e.args?.['Total Allocated'] || (e.args ? Object.values(e.args)[0] : 0),
-        args: e.args,
-      }));
-
-    return {
-      events: eventsWithSelfTime,
-      metadata,
-      operators,
-      kernels,
-      memoryEvents,
-      modules: [], // Will be populated by moduleParser
-      stepTimeBreakdown,
-      gpuUtilization,
-      gpuInfo,
-      recommendations: [], // Will be populated by recommendationsEngine
-      summary: {
-        totalDuration,
-        eventCount: events.length,
-        operatorCount: operators.length,
-        kernelCount: kernels.length,
-        startTime,
-        endTime,
-      },
-    };
-  } catch (error) {
-    console.error('Error processing trace data:', error);
-    throw new Error(`Failed to process trace data: ${error.message}`);
   }
 };
