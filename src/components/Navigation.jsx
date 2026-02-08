@@ -66,17 +66,6 @@ const Navigation = () => {
         </svg>
       )
     },
-    {
-      id: 'modules',
-      label: 'Modules',
-      key: '6',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M4 7h16M4 12h16M4 17h16" />
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-        </svg>
-      )
-    },
   ];
 
   useEffect(() => {

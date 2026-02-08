@@ -12,6 +12,47 @@ A comprehensive web-based visualization tool for PyTorch profiler traces, matchi
 ![Vite](https://img.shields.io/badge/Vite-7.3-purple)
 ![License](https://img.shields.io/badge/license-Apache%202.0-green)
 
+## Usage
+
+### Quick Demo
+
+<div align="center">
+  <img src="public/usage.gif" alt="Perfessor Usage Demo" width="800"/>
+</div>
+
+### Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="public/screenshots/1.png" alt="Overview View" width="400"/><br/>
+        <b>Overview View</b>
+      </td>
+      <td align="center">
+        <img src="public/screenshots/2.png" alt="Operators View" width="400"/><br/>
+        <b>Operators View</b>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="public/screenshots/3.png" alt="Kernels View" width="400"/><br/>
+        <b>Kernels View</b>
+      </td>
+      <td align="center">
+        <img src="public/screenshots/4.png" alt="Trace View" width="400"/><br/>
+        <b>Trace View</b>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="public/screenshots/5.png" alt="Memory View" width="400"/><br/>
+        <b>Memory View</b>
+      </td>
+    </tr>
+  </table>
+</div>
+
 ## Features
 
 ### 🎯 Core Capabilities
@@ -19,7 +60,7 @@ A comprehensive web-based visualization tool for PyTorch profiler traces, matchi
 - **Gzip Support**: Upload compressed `.json.gz` files for smaller transfers
 - **Large File Handling**: Process files up to 1GB with chunked reading and Web Workers
 - **Auto Version Check**: Notifies users of new versions every 10 seconds
-- **Icon-Based Navigation**: Intuitive tab icons with keyboard shortcuts (1-6)
+- **Icon-Based Navigation**: Intuitive tab icons with keyboard shortcuts (1-5)
 - **Behavior Match**: Precisely matches torch-tb-profiler metrics and filtering
 
 ### 📊 Overview View
@@ -61,10 +102,7 @@ A comprehensive web-based visualization tool for PyTorch profiler traces, matchi
 - **Counter Events**: Memory usage over time
 - **Formatted Display**: Human-readable sizes and timestamps
 
-### 🏗️ Module View
-- **Module Hierarchy**: Detected nn.Module instances
-- **Statistics**: Occurrences and operator counts
-- **Type Information**: Module class names
+
 
 ## Getting Started
 
@@ -165,7 +203,6 @@ prof.export_chrome_trace("trace.json")
    - `3` - Kernels View (GPU icon)
    - `4` - Trace View (timeline icon)
    - `5` - Memory View (memory chip icon)
-   - `6` - Modules View (layers icon)
 
 3. **Analyze Performance**:
    - Check **Overall** for high-level insights and recommendations
@@ -173,7 +210,6 @@ prof.export_chrome_trace("trace.json")
    - Review **Kernels** for GPU-specific optimizations
    - Use **Trace** for timeline analysis with Perfetto
    - Inspect **Memory** for allocation patterns
-   - View **Modules** for model structure analysis
 
 ## Architecture
 
@@ -293,7 +329,7 @@ Supported event types:
 
 ## Keyboard Shortcuts
 
-- `1-6`: Switch between views
+- `1-5`: Switch between views
 - `Ctrl+F`: Focus search (when available)
 - `Esc`: Close detail panels
 
