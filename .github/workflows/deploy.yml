@@ -47,6 +47,11 @@ jobs:
           echo "✅ Version updated to: ${VERSION}"
       - name: Build
         run: npm run build
+      - name: Add cache-control meta tags to index.html
+        run: |
+          # Add meta tags to prevent HTML caching
+          sed -i 's|</head>|<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" /></head>|' docs/index.html
+          echo "✅ Added cache-control meta tags to index.html"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

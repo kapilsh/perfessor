@@ -49,14 +49,34 @@ export const useVersionCheck = () => {
       // Store the version we're refreshing for
       sessionStorage.setItem('lastRefreshedVersion', data.version);
 
-      // Clear all caches
+      // 1. Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+      }
+
+      // 2. Clear all caches
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(cacheNames.map(name => caches.delete(name)));
       }
 
-      // Force hard reload by replacing location (bypasses cache)
-      window.location.replace(window.location.href.split('?')[0] + '?nocache=' + Date.now());
+      // 3. Add meta tag to prevent caching
+      const meta = document.createElement('meta');
+      meta.httpEquiv = 'Cache-Control';
+      meta.content = 'no-cache, no-store, must-revalidate';
+      document.head.appendChild(meta);
+
+      // 4. Use timeout to ensure all cleanup completes
+      setTimeout(() => {
+        // Force hard reload with multiple cache-busting techniques
+        const url = new URL(window.location.href);
+        url.searchParams.set('_', Date.now());
+        url.searchParams.set('nocache', '1');
+
+        // Replace location to force full page reload
+        window.location.replace(url.toString());
+      }, 100);
     } catch (error) {
       console.error('Refresh failed:', error);
       // Fallback to simple reload
