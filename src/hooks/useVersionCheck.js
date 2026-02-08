@@ -31,7 +31,15 @@ export const useVersionCheck = () => {
   }, []);
 
   const refreshPage = () => {
-    window.location.reload(true);
+    // Force hard reload by clearing cache
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
+
+    // Hard reload with cache busting
+    window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now();
   };
 
   return { newVersionAvailable, refreshPage };
