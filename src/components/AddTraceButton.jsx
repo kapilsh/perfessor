@@ -22,8 +22,11 @@ const AddTraceButton = () => {
   const handleFile = useCallback(async (file) => {
     if (!file) return;
 
-    if (!file.name.endsWith('.json') && !file.name.includes('.trace.json')) {
-      setError('Please upload a JSON trace file (.json or .pt.trace.json)');
+    const isGzipped = file.name.endsWith('.gz');
+    const isJson = file.name.endsWith('.json') || file.name.includes('.trace.json');
+
+    if (!isJson && !isGzipped) {
+      setError('Please upload a JSON trace file (.json, .pt.trace.json, or .gz)');
       return;
     }
 
@@ -49,16 +52,40 @@ const AddTraceButton = () => {
     setProgress({ stage: 'reading', percent: 0, message: `Reading file (${fileSizeLabel})...` });
 
     try {
-      // Read file in chunks with progress updates
-      const text = await readFileInChunks(file, (bytesRead, totalBytes) => {
-        const percent = (bytesRead / totalBytes) * 100;
-        const readMB = (bytesRead / 1024 / 1024).toFixed(0);
-        setProgress({
-          stage: 'reading',
-          percent: percent,
-          message: `Reading file: ${readMB}MB / ${fileSizeLabel}`
+      let text;
+
+      if (isGzipped) {
+        // Decompress gzipped file
+        setProgress({ stage: 'decompressing', percent: 5, message: 'Decompressing gzipped file...' });
+
+        const arrayBuffer = await file.arrayBuffer();
+        const stream = new Response(arrayBuffer).body
+          .pipeThrough(new DecompressionStream('gzip'));
+        const decompressedBlob = await new Response(stream).blob();
+
+        // Read decompressed content in chunks
+        text = await readFileInChunks(decompressedBlob, (bytesRead, totalBytes) => {
+          const percent = (bytesRead / totalBytes) * 100;
+          const readMB = (bytesRead / 1024 / 1024).toFixed(0);
+          const totalMB = (totalBytes / 1024 / 1024).toFixed(0);
+          setProgress({
+            stage: 'reading',
+            percent: percent,
+            message: `Reading decompressed file: ${readMB}MB / ${totalMB}MB`
+          });
         });
-      });
+      } else {
+        // Read file in chunks with progress updates
+        text = await readFileInChunks(file, (bytesRead, totalBytes) => {
+          const percent = (bytesRead / totalBytes) * 100;
+          const readMB = (bytesRead / 1024 / 1024).toFixed(0);
+          setProgress({
+            stage: 'reading',
+            percent: percent,
+            message: `Reading file: ${readMB}MB / ${fileSizeLabel}`
+          });
+        });
+      }
 
       setProgress({ stage: 'parsing', percent: 10, message: 'Parsing JSON...' });
 
@@ -145,7 +172,7 @@ const AddTraceButton = () => {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".json"
+        accept=".json,.gz"
         onChange={handleFileInput}
         style={{ display: 'none' }}
       />
