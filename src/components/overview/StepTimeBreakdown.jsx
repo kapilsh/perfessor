@@ -101,8 +101,8 @@ const StepTimeBreakdown = () => {
             width={110}
             style={{ fontSize: '0.875rem' }}
           />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="time" radius={[0, 4, 4, 0]}>
+          <Tooltip content={<CustomTooltip />} cursor={false} />
+          <Bar dataKey="time" radius={[0, 4, 4, 0]} cursor="pointer">
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={getStepTimeColor(entry.name)} />
             ))}

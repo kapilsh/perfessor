@@ -204,6 +204,66 @@ const calculateSelfTimes = (events) => {
   return result;
 };
 
+// Check if event is a PyTorch operator (not kernel, runtime, or profiler metadata)
+const isOperator = (event) => {
+  const cat = (event.cat || '').toLowerCase();
+  const name = event.name || '';
+
+  // Exclude ProfilerStep events (even if they're user_annotation)
+  if (name.startsWith('ProfilerStep#')) return false;
+
+  // Exclude DataLoader events (TensorBoard shows these separately)
+  if (name.startsWith('enumerate(DataLoader)#') || name.startsWith('enumerate(DataPipe)#')) return false;
+
+  // Exclude Optimizer events (TensorBoard shows these separately)
+  if (name.startsWith('Optimizer.step#')) return false;
+
+  // Exclude CUDA runtime calls
+  if (cat.includes('cuda_runtime') || cat.includes('runtime')) return false;
+
+  // Exclude kernels (they go in kernels tab)
+  if (cat.includes('kernel')) return false;
+
+  // Exclude memcpy/memset
+  if (cat.includes('memcpy') || cat.includes('memset')) return false;
+
+  // Exclude memory events
+  if (name === '[memory]') return false;
+
+  // Exclude python_function (these are Python-level calls, not operators)
+  // TensorBoard does NOT show these in operators view
+  if (cat.includes('python_function')) return false;
+
+  // Include CPU operators (main category for PyTorch operators)
+  if (cat.includes('cpu_op') || cat.includes('operator')) {
+    return true;
+  }
+
+  // Include user annotations ONLY if they're communication ops
+  // Check for common communication operation names
+  if (cat.includes('user_annotation')) {
+    const nameLower = name.toLowerCase();
+    // NCCL ops: all_reduce, all_gather, reduce_scatter, broadcast, etc.
+    const isNcclOp = nameLower.includes('nccl:') ||
+                     nameLower.includes('all_reduce') ||
+                     nameLower.includes('all_gather') ||
+                     nameLower.includes('reduce_scatter') ||
+                     nameLower.includes('broadcast');
+
+    // Gloo ops
+    const isGlooOp = nameLower.includes('gloo:');
+
+    return isNcclOp || isGlooOp;
+  }
+
+  // Include events that look like PyTorch operators (aten::, c10::, etc.)
+  if (name.includes('aten::') || name.includes('c10::') || name.includes('torch::')) {
+    return true;
+  }
+
+  return false;
+};
+
 // Aggregate operators
 const aggregateOperators = (events) => {
   reportProgress('aggregate', 0, 'Aggregating operators...');
@@ -217,11 +277,15 @@ const aggregateOperators = (events) => {
 
     if (event.ph !== 'X') return;
 
+    // Filter to only actual operators
+    if (!isOperator(event)) return;
+
     const name = event.name;
     const isGPU = isGPUEvent(event);
     const isCPU = isCPUEvent(event);
 
     if (!aggregated[name]) {
+      const cat = (event.cat || '').toLowerCase();
       aggregated[name] = {
         name,
         category: event.cat || 'unknown',
@@ -233,6 +297,7 @@ const aggregateOperators = (events) => {
         minDuration: Infinity,
         maxDuration: 0,
         inputShapes: new Set(),
+        isUserAnnotation: cat.includes('user_annotation'),
       };
     }
 
@@ -270,13 +335,27 @@ const aggregateOperators = (events) => {
   })).sort((a, b) => b.deviceSelfDuration - a.deviceSelfDuration);
 };
 
+// Check if event is an actual GPU kernel (not runtime call)
+const isActualKernel = (event) => {
+  const cat = (event.cat || '').toLowerCase();
+  const name = event.name || '';
+
+  // Must have kernel category
+  if (!cat.includes('kernel')) return false;
+
+  // Exclude runtime calls like cuLaunchKernel
+  if (name.includes('cuLaunchKernel') || name.includes('cudaLaunchKernel')) return false;
+
+  return true;
+};
+
 // Aggregate kernels
 const aggregateKernels = (events) => {
   reportProgress('kernels', 0, 'Aggregating kernels...');
   const aggregated = {};
 
   events.forEach(event => {
-    if (!isKernelEvent(event) || event.ph !== 'X') return;
+    if (!isActualKernel(event) || event.ph !== 'X') return;
 
     const name = event.name;
 
@@ -290,6 +369,7 @@ const aggregateKernels = (events) => {
         tensorCoresUsed: hasTensorCoreSupport(name),
         blocksPerSM: [],
         occupancy: [],
+        durations: [],
       };
     }
 
@@ -297,26 +377,40 @@ const aggregateKernels = (events) => {
     aggregated[name].totalDuration += event.dur;
     aggregated[name].minDuration = Math.min(aggregated[name].minDuration, event.dur);
     aggregated[name].maxDuration = Math.max(aggregated[name].maxDuration, event.dur);
+    aggregated[name].durations.push(event.dur);
 
     if (event.args) {
-      if (event.args['Blocks Per SM']) {
-        aggregated[name].blocksPerSM.push(event.args['Blocks Per SM']);
+      // Note: field names are case-sensitive and use lowercase (from PyTorch profiler)
+      // Store both the metric value and duration for weighted averaging (matching torch-tb-profiler)
+      if (event.args['blocks per SM'] !== undefined) {
+        aggregated[name].blocksPerSM.push({
+          value: event.args['blocks per SM'],
+          duration: event.dur
+        });
       }
-      if (event.args['Est. Achieved Occupancy']) {
-        aggregated[name].occupancy.push(event.args['Est. Achieved Occupancy']);
+      if (event.args['est. achieved occupancy %'] !== undefined) {
+        aggregated[name].occupancy.push({
+          value: event.args['est. achieved occupancy %'],
+          duration: event.dur
+        });
       }
     }
   });
 
+  // Helper function for weighted average (matches torch-tb-profiler behavior)
+  const weightedAvg = (samples) => {
+    if (samples.length === 0) return 0;
+    const totalWeight = samples.reduce((sum, s) => sum + s.duration, 0);
+    if (totalWeight === 0) return 0;
+    const weightedSum = samples.reduce((sum, s) => sum + (s.value * s.duration), 0);
+    return weightedSum / totalWeight;
+  };
+
   return Object.values(aggregated).map(kernel => ({
     ...kernel,
     meanDuration: kernel.totalDuration / kernel.calls,
-    meanBlocksPerSM: kernel.blocksPerSM.length > 0
-      ? kernel.blocksPerSM.reduce((a, b) => a + b, 0) / kernel.blocksPerSM.length
-      : 0,
-    meanOccupancy: kernel.occupancy.length > 0
-      ? kernel.occupancy.reduce((a, b) => a + b, 0) / kernel.occupancy.length
-      : 0,
+    meanBlocksPerSM: weightedAvg(kernel.blocksPerSM),
+    meanOccupancy: weightedAvg(kernel.occupancy),
   })).sort((a, b) => b.totalDuration - a.totalDuration);
 };
 

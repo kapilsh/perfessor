@@ -33,9 +33,24 @@ const OperatorView = () => {
         accessorKey: 'name',
         header: 'Operation Name',
         cell: (info) => (
-          <span title={info.getValue()}>
-            {info.getValue()}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }} title={info.getValue()}>
+              {info.getValue()}
+            </span>
+            {info.row.original.isUserAnnotation && (
+              <span style={{
+                backgroundColor: '#2196F3',
+                color: 'white',
+                padding: '0.125rem 0.375rem',
+                borderRadius: '3px',
+                fontSize: '0.65rem',
+                fontWeight: '600',
+                flexShrink: 0,
+              }}>
+                USER
+              </span>
+            )}
+          </div>
         ),
       },
       {
@@ -234,44 +249,46 @@ const OperatorView = () => {
               ×
             </button>
           </div>
-          <div className="detail-content">
-            <div className="detail-row">
-              <span className="detail-label">Name:</span>
-              <span className="detail-value">{selectedOperator.name}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Category:</span>
-              <span className="detail-value">{selectedOperator.category}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Calls:</span>
-              <span className="detail-value">{selectedOperator.calls.toLocaleString()}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">CUDA Self Duration:</span>
-              <span className="detail-value">{formatDuration(selectedOperator.deviceSelfDuration)}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">CUDA Total Duration:</span>
-              <span className="detail-value">{formatDuration(selectedOperator.deviceTotalDuration)}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">CPU Self Duration:</span>
-              <span className="detail-value">{formatDuration(selectedOperator.hostSelfDuration)}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">CPU Total Duration:</span>
-              <span className="detail-value">{formatDuration(selectedOperator.hostTotalDuration)}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Min Duration:</span>
-              <span className="detail-value">{formatDuration(selectedOperator.minDuration)}</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">Max Duration:</span>
-              <span className="detail-value">{formatDuration(selectedOperator.maxDuration)}</span>
-            </div>
-          </div>
+          <table className="detail-table">
+            <tbody>
+              <tr>
+                <td className="detail-label">Name</td>
+                <td className="detail-value">{selectedOperator.name}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">Category</td>
+                <td className="detail-value">{selectedOperator.category}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">Calls</td>
+                <td className="detail-value">{selectedOperator.calls.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">CUDA Self Duration</td>
+                <td className="detail-value">{formatDuration(selectedOperator.deviceSelfDuration)}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">CUDA Total Duration</td>
+                <td className="detail-value">{formatDuration(selectedOperator.deviceTotalDuration)}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">CPU Self Duration</td>
+                <td className="detail-value">{formatDuration(selectedOperator.hostSelfDuration)}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">CPU Total Duration</td>
+                <td className="detail-value">{formatDuration(selectedOperator.hostTotalDuration)}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">Min Duration</td>
+                <td className="detail-value">{formatDuration(selectedOperator.minDuration)}</td>
+              </tr>
+              <tr>
+                <td className="detail-label">Max Duration</td>
+                <td className="detail-value">{formatDuration(selectedOperator.maxDuration)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -454,28 +471,35 @@ const OperatorView = () => {
           color: #f3f4f6;
         }
 
-        .detail-content {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 0.75rem;
+        .detail-table {
+          width: 100%;
+          border-collapse: collapse;
         }
 
-        .detail-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 0.5rem 0;
+        .detail-table tbody tr {
+          border-bottom: 1px solid #374151;
         }
 
-        .detail-label {
+        .detail-table tbody tr:last-child {
+          border-bottom: none;
+        }
+
+        .detail-table td {
+          padding: 0.5rem 1rem;
           font-size: 0.875rem;
+        }
+
+        .detail-table .detail-label {
           color: #9ca3af;
           font-weight: 500;
+          white-space: nowrap;
+          width: 180px;
         }
 
-        .detail-value {
-          font-size: 0.875rem;
+        .detail-table .detail-value {
           color: #f3f4f6;
           font-family: monospace;
+          word-break: break-all;
         }
       `}</style>
     </div>

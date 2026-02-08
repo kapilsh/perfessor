@@ -36,19 +36,15 @@
   border-bottom-color: #4CAF50;
 }
 
-.keyboard-hint {
-  display: inline-block;
-  padding: 0.125rem 0.375rem;
-  background: #374151;
-  border-radius: 3px;
-  font-size: 0.75rem;
-  color: #6b7280;
-  font-family: monospace;
+.tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.nav-tab.active .keyboard-hint {
-  background: #2e7d32;
-  color: #c8e6c9;
+.tab-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 @media (max-width: 768px) {
@@ -57,7 +53,8 @@
     font-size: 0.8rem;
   }
 
-  .keyboard-hint {
-    display: none;
+  .tab-icon svg {
+    width: 14px;
+    height: 14px;
   }
 }
