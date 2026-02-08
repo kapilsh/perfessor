@@ -10,7 +10,7 @@ A comprehensive web-based visualization tool for PyTorch profiler traces, matchi
 
 ![React](https://img.shields.io/badge/React-19-blue)
 ![Vite](https://img.shields.io/badge/Vite-7.3-purple)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-Apache%202.0-green)
 
 ## Features
 
