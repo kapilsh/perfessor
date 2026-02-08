@@ -313,17 +313,7 @@ Based on:
 
 ## Contributing
 
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-MIT License
+Contributions welcome! 
 
 ## Acknowledgments
 
@@ -331,6 +321,3 @@ MIT License
 - Uses [Perfetto UI](https://ui.perfetto.dev/) for trace visualization
 - Chrome Trace Event Format [spec](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/)
 
----
-
-Built for PyTorch developers to optimize deep learning performance

@@ -13,8 +13,18 @@ export const useVersionCheck = () => {
         const response = await fetch(`${import.meta.env.BASE_URL}version.json?t=${Date.now()}`);
         const data = await response.json();
 
+        // Check if we just refreshed for this version
+        const lastRefreshedVersion = sessionStorage.getItem('lastRefreshedVersion');
+
         if (data.version !== CURRENT_VERSION) {
-          setNewVersionAvailable(true);
+          // Don't show banner if we just refreshed for this version
+          if (lastRefreshedVersion !== data.version) {
+            setNewVersionAvailable(true);
+          }
+        } else {
+          // Versions match, clear the refresh flag
+          sessionStorage.removeItem('lastRefreshedVersion');
+          setNewVersionAvailable(false);
         }
       } catch (error) {
         console.error('Failed to check version:', error);
@@ -30,16 +40,28 @@ export const useVersionCheck = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const refreshPage = () => {
-    // Force hard reload by clearing cache
-    if ('caches' in window) {
-      caches.keys().then((names) => {
-        names.forEach(name => caches.delete(name));
-      });
-    }
+  const refreshPage = async () => {
+    try {
+      // Fetch the latest version before refreshing
+      const response = await fetch(`${import.meta.env.BASE_URL}version.json?t=${Date.now()}`);
+      const data = await response.json();
 
-    // Hard reload with cache busting
-    window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now();
+      // Store the version we're refreshing for
+      sessionStorage.setItem('lastRefreshedVersion', data.version);
+
+      // Clear all caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+
+      // Force hard reload by replacing location (bypasses cache)
+      window.location.replace(window.location.href.split('?')[0] + '?nocache=' + Date.now());
+    } catch (error) {
+      console.error('Refresh failed:', error);
+      // Fallback to simple reload
+      window.location.reload();
+    }
   };
 
   return { newVersionAvailable, refreshPage };
