@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="public/logo.png" alt="Perfessor Logo" width="300"/>
+  <img src="public/logo-bigger.png" alt="Perfessor Logo" width="400"/>
 </div>
 
-# Perfessor 
+# Perfessor
 
-A comprehensive web-based visualization tool for PyTorch profiler traces, inspired by TensorBoard's profiler plugin. Built with React 19, this application provides interactive analysis of profiling data using Perfetto UI for trace visualization.
+A comprehensive web-based visualization tool for PyTorch profiler traces, matching TensorBoard's profiler plugin behavior. Built with React 19, this application provides interactive analysis of profiling data with optimized performance for large trace files.
 
 **🌐 Live Demo**: [https://kapilsharma.dev/perfessor/](https://kapilsharma.dev/perfessor/)
 
@@ -14,44 +14,56 @@ A comprehensive web-based visualization tool for PyTorch profiler traces, inspir
 
 ## Features
 
+### 🎯 Core Capabilities
+- **Multiple Trace Support**: Load and switch between multiple trace files
+- **Gzip Support**: Upload compressed `.json.gz` files for smaller transfers
+- **Large File Handling**: Process files up to 1GB with chunked reading and Web Workers
+- **Auto Version Check**: Notifies users of new versions every 10 seconds
+- **Icon-Based Navigation**: Intuitive tab icons with keyboard shortcuts (1-6)
+- **Behavior Match**: Precisely matches torch-tb-profiler metrics and filtering
+
 ### 📊 Overview View
 - **Summary Cards**: Total duration, event count, unique operators, GPU kernels
 - **GPU Information**: Device name, memory, compute capability
-- **GPU Utilization**: Visual gauge showing utilization percentage
-- **Step Time Breakdown**: Pie chart categorizing time into Kernel, Memcpy, Communication, DataLoader, etc.
-- **Performance Recommendations**: Automated analysis identifying bottlenecks and optimization opportunities
+- **GPU Utilization**: Visual gauge with percentage display
+- **Step Time Breakdown**: Horizontal bar chart showing Kernel, CPU, Memory, DataLoader time
+- **Performance Recommendations**: Automated bottleneck detection and optimization suggestions
+- **Tensor Core Stats**: Overall utilization percentage
 
 ### ⚙️ Operators View
-- **Comprehensive Table**: Device/Host durations, calls, CUDA time percentage
-- **Sortable Columns**: Click headers to sort by any metric
-- **Real-time Search**: Debounced filtering for smooth performance
-- **Virtualized Scrolling**: Handles 1000+ operators efficiently
-- **Detail Panel**: In-depth metrics for selected operators
-- **CSV Export**: Download operator data for external analysis
+- **TensorBoard Accuracy**: Exact operator filtering matching torch-tb-profiler
+- **User Annotations**: Visual badges for custom profiler annotations (NCCL, Gloo)
+- **Sortable Metrics**: Device/Host self/total durations, calls, percentage breakdown
+- **Real-time Search**: 300ms debounced filtering
+- **Virtualized Scrolling**: Smooth performance with 1000+ operators
+- **Interactive Detail Panel**: Click any row to view full operator details in table format
+- **CSV Export**: Download complete operator statistics
 
 ### 🔧 Kernels View
-- **GPU Kernel Analysis**: Detailed statistics for all CUDA kernels
-- **Tensor Core Detection**: Identifies kernels using Tensor Cores
-- **Performance Metrics**: Total/mean/min/max duration, occupancy
-- **Search & Filter**: Quickly find specific kernels
-- **Utilization Stats**: Overall Tensor Core usage percentage
+- **Weighted Averages**: Metrics weighted by duration, matching torch-tb-profiler exactly
+- **Tensor Core Detection**: "TC" badges on kernels using Tensor Cores
+- **Complete Metrics**: Calls, total/mean/min/max duration, blocks per SM, occupancy
+- **Compact Layout**: Optimized column widths for horizontal screen fit
+- **Interactive Detail Panel**: Click any row to see detailed kernel information
+- **Search & Filter**: Quick kernel lookup
+- **CSV Export**: Export kernel statistics
 
 ### 📈 Trace View (Perfetto UI)
-- **Interactive Timeline**: Embedded Perfetto UI for trace visualization
-- **Thread & Stream Lanes**: Separate visualization for different execution contexts
-- **Zoom & Pan**: Navigate through trace timeline
-- **Flow Events**: Visualize async operations
-- **External Viewer**: Open in new window for full Perfetto features
+- **Embedded Perfetto**: Full timeline visualization
+- **Thread & Stream Lanes**: GPU/CPU execution contexts
+- **Zoom & Pan**: Detailed timeline navigation
+- **Flow Events**: Async operation visualization
+- **External Viewer**: Open in new window
 - **Download Option**: Export trace file
 
 ### 💾 Memory View
-- **Memory Events Table**: Allocation/deallocation tracking
+- **Memory Events**: Allocation/deallocation tracking
 - **Counter Events**: Memory usage over time
-- **Formatted Display**: Human-readable byte sizes and timestamps
+- **Formatted Display**: Human-readable sizes and timestamps
 
 ### 🏗️ Module View
-- **PyTorch Module Hierarchy**: Detected nn.Module instances
-- **Module Statistics**: Occurrences, operator count per module
+- **Module Hierarchy**: Detected nn.Module instances
+- **Statistics**: Occurrences and operator counts
 - **Type Information**: Module class names
 
 ## Getting Started
@@ -141,18 +153,19 @@ prof.export_chrome_trace("trace.json")
 ### 2. Upload & Analyze
 
 1. **Upload Trace**:
-   - Drag and drop your `trace.json` file onto the upload zone
+   - Drag and drop your trace file onto the upload zone
    - Or click "Browse Files" to select
-   - Supports `.json` and `.pt.trace.json` files
-   - **Maximum file size: 1GB**
+   - Supports `.json`, `.pt.trace.json`, and `.gz` (gzipped) files
+   - **Maximum file size: 1GB** (compressed or uncompressed)
+   - Automatic decompression for gzipped files
 
-2. **Navigate Views** (Keyboard shortcuts):
-   - `1` - Overall View
-   - `2` - Operators View
-   - `3` - Kernels View
-   - `4` - Trace View
-   - `5` - Memory View
-   - `6` - Modules View
+2. **Navigate Views** (Icon-based tabs with keyboard shortcuts):
+   - `1` - Overall View (dashboard icon)
+   - `2` - Operators View (CPU icon)
+   - `3` - Kernels View (GPU icon)
+   - `4` - Trace View (timeline icon)
+   - `5` - Memory View (memory chip icon)
+   - `6` - Modules View (layers icon)
 
 3. **Analyze Performance**:
    - Check **Overall** for high-level insights and recommendations
@@ -217,16 +230,19 @@ src/
 
 ### Data Processing Pipeline
 
-1. **File Upload & Validation**: Check file type and size
-2. **JSON Parsing**: Extract trace events array
-3. **Event Conversion**: Transform Begin/End pairs to Complete events
-4. **Metadata Extraction**: GPU info, process/thread names
-5. **Hierarchy Building**: Parent-child relationships from timestamps
-6. **Self-Time Calculation**: Subtract child durations
-7. **Operator Aggregation**: Group by name, compute statistics
-8. **Kernel Analysis**: GPU kernel metrics, Tensor Core detection
-9. **Step Time Breakdown**: Categorize events by type
-10. **Recommendations Generation**: Performance insights
+1. **File Upload & Validation**: Check file type and size, detect gzip
+2. **Decompression**: Automatic gzip decompression if needed (using DecompressionStream API)
+3. **Chunked Reading**: Read large files in 10MB chunks with progress tracking
+4. **Web Worker Processing**: Background processing to keep UI responsive
+5. **JSON Parsing**: Extract trace events array
+6. **Event Conversion**: Transform Begin/End pairs to Complete events
+7. **Metadata Extraction**: GPU info, process/thread names
+8. **Hierarchy Building**: O(n) parent-child relationships from timestamps
+9. **Self-Time Calculation**: O(n) optimized with Map-based lookups
+10. **Operator Aggregation**: Exact torch-tb-profiler filtering logic
+11. **Kernel Analysis**: Weighted averages, Tensor Core detection, occupancy metrics
+12. **Step Time Breakdown**: Categorize events by type
+13. **Recommendations Generation**: Performance insights
 
 ## Performance Recommendations Engine
 
@@ -264,11 +280,16 @@ Supported event types:
 
 ## Performance Optimizations
 
+- **Web Worker Processing**: Heavy computation runs in background thread
+- **Chunked File Reading**: 10MB chunks prevent browser freezing on large files
+- **Gzip Support**: Smaller file transfers and automatic decompression
+- **O(n) Algorithms**: Optimized hierarchy building and self-time calculation
 - **Lazy Loading**: Views loaded on-demand with `React.lazy()`
 - **Memoization**: `React.memo()` prevents unnecessary re-renders
 - **Debounced Search**: 300ms debounce for smooth filtering
-- **Virtualized Tables**: Only render visible rows
+- **Virtualized Tables**: Only render visible rows (TanStack Virtual)
 - **Efficient State**: Zustand for minimal re-renders
+- **Optimized Grid Layout**: Responsive column sizing for better screen utilization
 
 ## Keyboard Shortcuts
 

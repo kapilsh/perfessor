@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const CURRENT_VERSION = '1.0.0'; // Update this when deploying
+const CURRENT_VERSION = '1.0.1'; // Update this when deploying
 const CHECK_INTERVAL = 10 * 1000; // Check every 10 seconds
 
 export const useVersionCheck = () => {
