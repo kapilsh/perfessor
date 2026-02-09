@@ -42,14 +42,18 @@ A comprehensive web-based visualization tool for PyTorch profiler traces, matchi
         <b>Kernels View</b>
       </td>
       <td align="center">
-        <img src="public/screenshots/4.png" alt="Trace View" width="400"/><br/>
-        <b>Trace View</b>
+        <img src="public/screenshots/4.png" alt="Kernels View Details" width="400"/><br/>
+        <b>Kernels View</b>
       </td>
     </tr>
     <tr>
       <td align="center">
-        <img src="public/screenshots/5.png" alt="Memory View" width="400"/><br/>
+        <img src="public/screenshots/6.png" alt="Memory View" width="400"/><br/>
         <b>Memory View</b>
+      </td>
+    <td align="center">
+        <img src="public/screenshots/5.png" alt="Trace View" width="400"/><br/>
+        <b>Trace View</b>
       </td>
     </tr>
   </table>
