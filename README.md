@@ -1,8 +1,10 @@
-<div align="center">
-  <img src="public/logo-bigger.png" alt="Perfessor Logo" width="400"/>
+# Perfessor
+
+<div>
+  <img src="public/perfessor.png" alt="Perfessor Logo" width="800"/>
 </div>
 
-# Perfessor
+---
 
 A comprehensive web-based visualization tool for PyTorch profiler traces, matching TensorBoard's profiler plugin behavior. Built with React 19, this application provides interactive analysis of profiling data with optimized performance for large trace files.
 
