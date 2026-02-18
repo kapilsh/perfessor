@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import useTraceStore from '../store/traceStore';
+import useNcuStore from '../store/ncuStore';
 import { generateRecommendations } from '../utils/recommendationsEngine';
 import { readFileInChunks } from '../utils/chunkedFileReader';
 import './FileUploader.css';
@@ -7,6 +8,7 @@ import './FileUploader.css';
 const FileUploader = () => {
   const [isDragging, setIsDragging] = useState(false);
   const { addTrace, setLoading, setError, setProgress } = useTraceStore();
+  const { loadFile: loadNcuFile } = useNcuStore();
   const workerRef = useRef(null);
 
   // Cleanup worker on unmount
@@ -22,11 +24,17 @@ const FileUploader = () => {
   const handleFile = useCallback(async (file) => {
     if (!file) return;
 
+    // Route .ncu-rep files to the NCU viewer
+    if (file.name.endsWith('.ncu-rep')) {
+      await loadNcuFile(file);
+      return;
+    }
+
     const isGzipped = file.name.endsWith('.gz');
     const isJson = file.name.endsWith('.json') || file.name.includes('.trace.json');
 
     if (!isJson && !isGzipped) {
-      setError('Please upload a JSON trace file (.json, .pt.trace.json, or .gz)');
+      setError('Please upload a JSON trace file (.json, .pt.trace.json, or .gz) or an NCU report (.ncu-rep)');
       return;
     }
 
@@ -155,7 +163,7 @@ const FileUploader = () => {
       setLoading(false);
       setProgress(null);
     }
-  }, [addTrace, setLoading, setError, setProgress]);
+  }, [addTrace, setLoading, setError, setProgress, loadNcuFile]);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -229,7 +237,7 @@ const FileUploader = () => {
           <input
             type="file"
             id="file-input"
-            accept=".json,.gz"
+            accept=".json,.gz,.ncu-rep"
             onChange={handleFileInput}
             style={{ display: 'none' }}
           />
@@ -239,7 +247,8 @@ const FileUploader = () => {
           </label>
 
           <p className="file-info">
-            Supports Chrome Trace Event Format (JSON or gzipped)<br />
+            Supports PyTorch Profiler traces (JSON or gzipped)<br />
+            and NVIDIA Nsight Compute reports (.ncu-rep)<br />
             <span style={{ fontSize: '0.85em', color: '#9ca3af' }}>
               Maximum file size: 1GB (compressed or uncompressed)
             </span>

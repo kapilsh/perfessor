@@ -1,11 +1,13 @@
 import { useCallback, useRef, useEffect } from 'react';
 import useTraceStore from '../store/traceStore';
+import useNcuStore from '../store/ncuStore';
 import { generateRecommendations } from '../utils/recommendationsEngine';
 import { readFileInChunks } from '../utils/chunkedFileReader';
 import './AddTraceButton.css';
 
 const AddTraceButton = () => {
   const { addTrace, setLoading, setError, setProgress } = useTraceStore();
+  const { addFile: addNcuFile } = useNcuStore();
   const fileInputRef = useRef(null);
   const workerRef = useRef(null);
 
@@ -22,11 +24,17 @@ const AddTraceButton = () => {
   const handleFile = useCallback(async (file) => {
     if (!file) return;
 
+    // Route .ncu-rep files to the NCU store
+    if (file.name.endsWith('.ncu-rep')) {
+      await addNcuFile(file);
+      return;
+    }
+
     const isGzipped = file.name.endsWith('.gz');
     const isJson = file.name.endsWith('.json') || file.name.includes('.trace.json');
 
     if (!isJson && !isGzipped) {
-      setError('Please upload a JSON trace file (.json, .pt.trace.json, or .gz)');
+      setError('Please upload a JSON trace file (.json, .pt.trace.json, or .gz) or an NCU report (.ncu-rep)');
       return;
     }
 
@@ -150,7 +158,7 @@ const AddTraceButton = () => {
       setLoading(false);
       setProgress(null);
     }
-  }, [addTrace, setLoading, setError, setProgress]);
+  }, [addTrace, setLoading, setError, setProgress, addNcuFile]);
 
   const handleFileInput = useCallback((e) => {
     const files = e.target.files;
@@ -172,7 +180,7 @@ const AddTraceButton = () => {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".json,.gz"
+        accept=".json,.gz,.ncu-rep"
         onChange={handleFileInput}
         style={{ display: 'none' }}
       />
