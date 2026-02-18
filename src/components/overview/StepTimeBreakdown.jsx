@@ -88,16 +88,18 @@ const StepTimeBreakdown = () => {
           layout="vertical"
           margin={{ top: 10, right: 30, left: 120, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a3a5e" />
           <XAxis
             type="number"
-            stroke="#9ca3af"
+            stroke="#a0a0b0"
+            tick={{ fill: '#a0a0b0' }}
             style={{ fontSize: '0.75rem' }}
           />
           <YAxis
             type="category"
             dataKey="name"
-            stroke="#9ca3af"
+            stroke="#a0a0b0"
+            tick={{ fill: '#e0e0e0' }}
             width={110}
             style={{ fontSize: '0.875rem' }}
           />
@@ -110,7 +112,7 @@ const StepTimeBreakdown = () => {
               dataKey="percentage"
               position="right"
               formatter={(value) => `${value.toFixed(1)}%`}
-              style={{ fill: '#f3f4f6', fontSize: '0.75rem', fontWeight: 600 }}
+              style={{ fill: '#e0e0e0', fontSize: '0.75rem', fontWeight: 600 }}
             />
           </Bar>
         </BarChart>

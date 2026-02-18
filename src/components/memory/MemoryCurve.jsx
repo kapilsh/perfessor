@@ -91,7 +91,7 @@ const MemoryCurve = () => {
           </div>
           <div className="memory-stat">
             <span className="stat-label">Memory Efficiency</span>
-            <span className="stat-value" style={{ color: memoryEfficiency >= 70 ? '#10b981' : memoryEfficiency >= 50 ? '#f59e0b' : '#ef4444' }}>
+            <span className="stat-value" style={{ color: memoryEfficiency >= 70 ? '#4ade80' : memoryEfficiency >= 50 ? '#fbbf24' : '#f87171' }}>
               {memoryEfficiency.toFixed(1)}%
             </span>
           </div>
@@ -113,19 +113,21 @@ const MemoryCurve = () => {
               <stop offset="95%" stopColor="#f97316" stopOpacity={0.05}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a3a5e" />
           <XAxis
             dataKey="time"
-            stroke="#9ca3af"
+            stroke="#a0a0b0"
+            tick={{ fill: '#a0a0b0' }}
             tickFormatter={formatTime}
             tickCount={8}
             style={{ fontSize: '0.75rem' }}
           />
           <YAxis
-            stroke="#9ca3af"
+            stroke="#a0a0b0"
+            tick={{ fill: '#a0a0b0' }}
             tickFormatter={formatMemory}
             style={{ fontSize: '0.75rem' }}
-            label={{ value: 'Memory', angle: -90, position: 'insideLeft', fill: '#9ca3af', style: { fontSize: '0.75rem' } }}
+            label={{ value: 'Memory', angle: -90, position: 'insideLeft', fill: '#e0e0e0', style: { fontSize: '0.75rem' } }}
           />
           <Tooltip content={<CustomTooltip />} />
           <ReferenceLine y={peakAllocated} stroke="#3b82f6" strokeDasharray="3 3" strokeOpacity={0.5} />

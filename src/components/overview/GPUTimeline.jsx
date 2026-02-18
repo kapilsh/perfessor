@@ -100,9 +100,9 @@ const GPUTimeline = () => {
 
   // Gradient colors for area
   const getGradientColor = () => {
-    if (avgUtilization >= 70) return { start: '#10b98180', stop: '#10b981' };
-    if (avgUtilization >= 40) return { start: '#f59e0b80', stop: '#f59e0b' };
-    return { start: '#ef444480', stop: '#ef4444' };
+    if (avgUtilization >= 70) return { start: '#4ade8080', stop: '#4ade80' };
+    if (avgUtilization >= 40) return { start: '#fbbf2480', stop: '#fbbf24' };
+    return { start: '#f8717180', stop: '#f87171' };
   };
 
   const gradientColor = getGradientColor();
@@ -113,19 +113,19 @@ const GPUTimeline = () => {
         <div className="timeline-stats">
           <div className="timeline-stat">
             <span className="stat-label">Avg Utilization</span>
-            <span className="stat-value" style={{ color: avgUtilization >= 70 ? '#10b981' : avgUtilization >= 40 ? '#f59e0b' : '#ef4444' }}>
+            <span className="stat-value" style={{ color: avgUtilization >= 70 ? '#4ade80' : avgUtilization >= 40 ? '#fbbf24' : '#f87171' }}>
               {avgUtilization.toFixed(1)}%
             </span>
           </div>
           <div className="timeline-stat">
             <span className="stat-label">High Activity</span>
-            <span className="stat-value" style={{ color: '#10b981' }}>
+            <span className="stat-value" style={{ color: '#4ade80' }}>
               {activePercent.toFixed(0)}%
             </span>
           </div>
           <div className="timeline-stat">
             <span className="stat-label">Idle Time</span>
-            <span className="stat-value" style={{ color: '#ef4444' }}>
+            <span className="stat-value" style={{ color: '#f87171' }}>
               {idlePercent.toFixed(0)}%
             </span>
           </div>
@@ -143,23 +143,25 @@ const GPUTimeline = () => {
               <stop offset="95%" stopColor={gradientColor.start} stopOpacity={0.1}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a3a5e" />
           <XAxis
             dataKey="time"
-            stroke="#9ca3af"
+            stroke="#a0a0b0"
+            tick={{ fill: '#a0a0b0' }}
             tickFormatter={formatTime}
             tickCount={10}
             style={{ fontSize: '0.75rem' }}
           />
           <YAxis
-            stroke="#9ca3af"
+            stroke="#a0a0b0"
+            tick={{ fill: '#a0a0b0' }}
             domain={[0, 100]}
             style={{ fontSize: '0.75rem' }}
-            label={{ value: 'GPU Active (%)', angle: -90, position: 'insideLeft', fill: '#9ca3af', style: { fontSize: '0.75rem' } }}
+            label={{ value: 'GPU Active (%)', angle: -90, position: 'insideLeft', fill: '#e0e0e0', style: { fontSize: '0.75rem' } }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <ReferenceLine y={70} stroke="#10b981" strokeDasharray="3 3" strokeOpacity={0.3} />
-          <ReferenceLine y={40} stroke="#f59e0b" strokeDasharray="3 3" strokeOpacity={0.3} />
+          <ReferenceLine y={70} stroke="#4ade80" strokeDasharray="3 3" strokeOpacity={0.3} />
+          <ReferenceLine y={40} stroke="#fbbf24" strokeDasharray="3 3" strokeOpacity={0.3} />
           <Area
             type="monotone"
             dataKey="utilization"
@@ -173,15 +175,15 @@ const GPUTimeline = () => {
 
       <div className="timeline-legend">
         <div className="legend-item">
-          <div className="legend-color" style={{ background: '#10b981' }}></div>
+          <div className="legend-color" style={{ background: '#4ade80' }}></div>
           <span>Good (&gt;70%)</span>
         </div>
         <div className="legend-item">
-          <div className="legend-color" style={{ background: '#f59e0b' }}></div>
+          <div className="legend-color" style={{ background: '#fbbf24' }}></div>
           <span>Moderate (40-70%)</span>
         </div>
         <div className="legend-item">
-          <div className="legend-color" style={{ background: '#ef4444' }}></div>
+          <div className="legend-color" style={{ background: '#f87171' }}></div>
           <span>Low (&lt;40%)</span>
         </div>
       </div>

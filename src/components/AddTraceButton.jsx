@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import useTraceStore from '../store/traceStore';
 import useNcuStore from '../store/ncuStore';
 import { generateRecommendations } from '../utils/recommendationsEngine';
@@ -171,6 +171,20 @@ const AddTraceButton = () => {
     }
   }, [handleFile]);
 
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpRef = useRef(null);
+
+  useEffect(() => {
+    if (!helpOpen) return;
+    const handleClickOutside = (e) => {
+      if (helpRef.current && !helpRef.current.contains(e.target)) {
+        setHelpOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [helpOpen]);
+
   const handleClick = () => {
     fileInputRef.current?.click();
   };
@@ -200,6 +214,35 @@ const AddTraceButton = () => {
         </svg>
         Add Trace
       </button>
+
+      <div className="help-popup-anchor" ref={helpRef}>
+        <button
+          className="help-icon-btn"
+          onClick={() => setHelpOpen(o => !o)}
+          aria-label="Help"
+        >
+          ?
+        </button>
+        {helpOpen && (
+          <div className="help-popup">
+            <div className="help-popup-title">Supported File Types</div>
+            <div className="help-popup-item">
+              <div className="help-popup-badge help-badge-pytorch">PyTorch</div>
+              <div className="help-popup-desc">
+                <strong>PyTorch Profiler Trace</strong><br />
+                Upload a <code>.json</code> or <code>.pt.trace.json.gz</code> file exported from <code>torch.profiler</code>. Visualize GPU/CPU timelines, kernel breakdowns, memory usage, and operator stats.
+              </div>
+            </div>
+            <div className="help-popup-item">
+              <div className="help-popup-badge help-badge-ncu">NCU</div>
+              <div className="help-popup-desc">
+                <strong>NVIDIA Nsight Compute Report</strong><br />
+                Upload a <code>.ncu-rep</code> file from <code>ncu</code> or Nsight Compute UI. Explore per-kernel metrics, speed of light, memory hierarchy, occupancy, and optimization hints.
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

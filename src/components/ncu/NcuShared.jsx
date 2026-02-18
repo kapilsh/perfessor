@@ -1,35 +1,91 @@
 // Shared JSX helpers used across NCU tab components
 
+import { useState } from 'react';
 import { getMetricDescription } from '../../utils/ncuMetricDescriptions.js';
 import { NcuHelpers } from '../../utils/ncuHelpers.js';
 import useNcuStore from '../../store/ncuStore.js';
 
 // ---- Metrics Table ----
 export const MetricsTable = ({ section }) => {
+  const [search, setSearch] = useState('');
+
   if (!section?.metrics?.length) return null;
+
+  const filtered = search
+    ? section.metrics.filter(m =>
+        m.name.toLowerCase().includes(search.toLowerCase()) ||
+        String(m.value ?? '').toLowerCase().includes(search.toLowerCase())
+      )
+    : section.metrics;
+
+  const handleExport = () => {
+    const q = (s) => {
+      const str = String(s ?? '');
+      return str.includes(',') || str.includes('"') || str.includes('\n')
+        ? `"${str.replace(/"/g, '""')}"` : str;
+    };
+    const rows = [
+      ['Metric', 'Unit', 'Value'],
+      ...filtered.map(m => [m.name || '', m.unit || '', String(m.value ?? '')]),
+    ];
+    const csv = rows.map(r => r.map(q).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${section.name || 'metrics'}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  };
+
   return (
-    <table className="ncu-metric-table">
-      <thead>
-        <tr><th>Metric</th><th className="ncu-unit-col">Unit</th><th className="ncu-value-col">Value</th></tr>
-      </thead>
-      <tbody>
-        {section.metrics.map((m, i) => {
-          const desc = getMetricDescription(m.name);
-          return (
-            <tr key={i}>
-              <td>
-                <span className="ncu-metric-name">
-                  {m.name}
-                  {desc && <span className="ncu-metric-help" title={desc}>?</span>}
-                </span>
-              </td>
-              <td className="ncu-unit-col">{m.unit}</td>
-              <td className="ncu-value-col">{m.value}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <>
+      <div className="ncu-table-controls">
+        <input
+          type="text"
+          className="ncu-table-search"
+          placeholder="Search metrics..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <button className="ncu-table-export-btn" onClick={handleExport}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export CSV
+        </button>
+        <span className="ncu-table-count">{filtered.length} of {section.metrics.length} metrics</span>
+      </div>
+      <table className="ncu-metric-table">
+        <thead>
+          <tr><th>Metric</th><th className="ncu-unit-col">Unit</th><th className="ncu-value-col">Value</th></tr>
+        </thead>
+        <tbody>
+          {filtered.map((m, i) => {
+            const desc = getMetricDescription(m.name);
+            return (
+              <tr key={i}>
+                <td>
+                  <span className="ncu-metric-name">
+                    {m.name}
+                    {desc && <span className="ncu-metric-help" title={desc}>?</span>}
+                  </span>
+                </td>
+                <td className="ncu-unit-col">{m.unit}</td>
+                <td className="ncu-value-col">{m.value}</td>
+              </tr>
+            );
+          })}
+          {filtered.length === 0 && (
+            <tr><td colSpan={3} style={{ textAlign: 'center', color: '#6b7280', padding: '1rem' }}>No metrics match "{search}"</td></tr>
+          )}
+        </tbody>
+      </table>
+    </>
   );
 };
 

@@ -82,7 +82,8 @@ body {
 
 /* App with traces layout */
 .app-with-traces {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -172,6 +173,7 @@ body {
 
 .app-main {
   flex: 1;
+  overflow-y: auto;
   overflow-x: hidden;
   background: #111827;
 }
