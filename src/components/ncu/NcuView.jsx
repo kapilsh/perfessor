@@ -2,10 +2,10 @@ import NcuKernelSidebar from './NcuKernelSidebar.jsx';
 import NcuKernelDetail from './NcuKernelDetail.jsx';
 import './NcuView.css';
 
-const NcuView = () => {
+const NcuView = ({ sidebarOpen }) => {
   return (
     <div className="ncu-layout">
-      <NcuKernelSidebar />
+      {sidebarOpen && <NcuKernelSidebar />}
       <NcuKernelDetail />
     </div>
   );

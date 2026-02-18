@@ -376,11 +376,6 @@ export const NcuParser = {
 
       
 
-        console.log("Decoding ProfileResult fields:", fields);
-
-    
-
-  
 
       const kernelMangledName = this.Protobuf.toString(this.Protobuf.getFirst(fields, 5) ?? new Uint8Array());
 
@@ -604,14 +599,6 @@ export const NcuParser = {
         const entrySize = dv.getUint32(offset, true);
         offset += 4;
         if (offset + entrySize > bytes.byteLength) break;
-
-        const entryData = bytes.subarray(offset, offset + entrySize);
-        // Try to parse range result to see if it contains source data
-        if (i === 0 && blockNum === 0) {
-          console.log('RangeResult entry size:', entrySize);
-          const rangeFields = this.Protobuf.parseFields(entryData);
-          console.log('RangeResult field numbers:', rangeFields.map(f => f.fieldNumber).join(', '));
-        }
 
         offset += entrySize;
       }

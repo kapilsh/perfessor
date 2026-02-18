@@ -87,6 +87,7 @@ const AppContent = () => {
   const { traces, fileName, isLoading, error, progress } = useTraceStore();
   const { files: ncuFiles, isLoading: ncuLoading, error: ncuError } = useNcuStore();
   const [activeMode, setActiveMode] = useState('trace'); // 'trace' | 'ncu'
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const hasTraces = traces.length > 0;
   const hasNcu = ncuFiles.length > 0;
@@ -255,6 +256,8 @@ const AppContent = () => {
 
   const displayFileName = effectiveMode === 'trace' ? fileName : ncuFileName;
 
+  const toggleSidebar = () => setSidebarOpen(o => !o);
+
   return (
     <div className="app-with-traces">
       <header className="app-trace-header">
@@ -265,6 +268,16 @@ const AppContent = () => {
           {(hasTraces || hasNcu) && (
             <>
               <div className="header-divider" />
+              <button
+                className={`sidebar-panel-btn ${sidebarOpen ? 'active' : ''}`}
+                onClick={toggleSidebar}
+                title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                  <rect x="0" y="0" width="4" height="14" rx="1" fill="#9ca3af"/>
+                  <rect x="5.5" y="0" width="8.5" height="14" rx="1" fill="#9ca3af"/>
+                </svg>
+              </button>
               <div className="app-mode-switcher">
                 {(hasTraces || !hasNcu) && (
                   <button
@@ -303,14 +316,16 @@ const AppContent = () => {
       {effectiveMode === 'ncu' ? (
         <div className="app-ncu-body">
           <Suspense fallback={<div style={{ padding: '2rem', color: '#9ca3af' }}>Loading NCU viewer...</div>}>
-            <NcuView />
+            <NcuView sidebarOpen={sidebarOpen} />
           </Suspense>
         </div>
       ) : (
         <div className="app-body">
-          <div className="app-sidebar">
-            <TraceSelector />
-          </div>
+          {sidebarOpen && (
+            <div className="app-sidebar">
+              <TraceSelector />
+            </div>
+          )}
           <div className="app-main">
             <TraceViewer />
           </div>
