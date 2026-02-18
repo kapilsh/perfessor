@@ -229,9 +229,9 @@ const FileUploader = () => {
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
 
-          <h2>Upload PyTorch Profiler Trace</h2>
+          <h2>Upload a GPU Profiler Trace</h2>
           <p className="subtitle">
-            Drag and drop your trace JSON file here, or click to browse
+            Drag and drop a PyTorch Profiler trace or NVIDIA Nsight Compute report, or click to browse
           </p>
 
           <input

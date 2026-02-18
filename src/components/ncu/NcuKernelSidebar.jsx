@@ -4,51 +4,51 @@ import { NcuHelpers } from '../../utils/ncuHelpers.js';
 const NcuKernelSidebar = () => {
   const {
     files, activeFileIndex, activeKernelIndex,
-    compareMode, compareKernels,
-    baseline,
+    compareMode,
     searchText, typeFilter,
     selectKernel, setSearch, setTypeFilter,
     getKernelSummary, kernelTypes,
-    isInComparison, toggleCompareMode, setBaseline,
-    activeTab,
+    isInComparison,
   } = useNcuStore();
 
   const kernel = useNcuStore(s => s.getActiveKernel());
   const multiFile = files.length > 1;
 
-  const isBaselineActive = baseline &&
-    baseline.fileIndex === activeFileIndex &&
-    baseline.kernelIndex === activeKernelIndex;
-
   const handleExportCSV = () => {
     if (!kernel) return;
-    const tables = document.querySelectorAll('.ncu-metric-table');
-    if (!tables.length) { alert('No tables in current view'); return; }
-
     const summary = getKernelSummary(kernel);
-    let csv = `Kernel: ${kernel.name}\nGrid: ${kernel.grid}, Block: ${kernel.block}\nSection: ${activeTab}\n\n`;
 
-    tables.forEach((tbl, idx) => {
-      if (idx > 0) csv += '\n\n';
-      const headers = Array.from(tbl.querySelectorAll('thead th')).map(th => th.textContent);
-      csv += headers.join(',') + '\n';
-      tbl.querySelectorAll('tbody tr').forEach(tr => {
-        const cells = Array.from(tr.querySelectorAll('td')).map(td => {
-          let t = td.textContent.trim();
-          if (t.includes(',') || t.includes('"')) t = '"' + t.replace(/"/g, '""') + '"';
-          return t;
-        });
-        csv += cells.join(',') + '\n';
+    const q = (s) => {
+      const str = String(s ?? '');
+      return str.includes(',') || str.includes('"') || str.includes('\n')
+        ? `"${str.replace(/"/g, '""')}"` : str;
+    };
+
+    const rows = [
+      ['Kernel', 'Grid', 'Block'],
+      [kernel.name, summary.grid, summary.block],
+      [],
+      ['Section', 'Metric', 'Unit', 'Value'],
+    ];
+
+    kernel.sections.forEach(sec => {
+      if (!sec.metrics?.length) return;
+      sec.metrics.forEach(m => {
+        rows.push([sec.name, m.name || '', m.unit || '', String(m.value ?? '')]);
       });
     });
+
+    const csv = rows.map(row => row.map(q).join(',')).join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${summary.shortName}_${activeTab}.csv`;
+    a.download = `${summary.shortName}_metrics.csv`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const isVisible = (kernel) => {
@@ -86,31 +86,6 @@ const NcuKernelSidebar = () => {
       {/* Action buttons */}
       {kernel && (
         <div className="ncu-sidebar-actions">
-          {/* Compare Mode */}
-          <button
-            className={`ncu-action-btn ${compareMode ? 'active' : ''}`}
-            onClick={toggleCompareMode}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 20V10M12 20V4M6 20v-6" />
-            </svg>
-            {compareMode ? `Compare Mode (${compareKernels.length})` : 'Compare Mode'}
-          </button>
-
-          {/* Set / Clear Baseline */}
-          <button
-            className={`ncu-action-btn ${isBaselineActive ? 'active' : ''}`}
-            onClick={setBaseline}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="6" x2="21" y2="6" strokeDasharray="4 2" />
-              <line x1="3" y1="18" x2="21" y2="18" strokeDasharray="4 2" />
-            </svg>
-            {isBaselineActive ? 'Clear Baseline' : 'Set as Baseline'}
-          </button>
-
-          {/* Export CSV */}
           <button className="ncu-action-btn" onClick={handleExportCSV}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -119,13 +94,6 @@ const NcuKernelSidebar = () => {
             </svg>
             Export CSV
           </button>
-
-          {/* Baseline label */}
-          {baseline && !isBaselineActive && (
-            <div className="ncu-baseline-tag">
-              Baseline: {getKernelSummary(baseline.kernel).shortName}
-            </div>
-          )}
         </div>
       )}
 

@@ -295,6 +295,10 @@
   opacity: 1;
 }
 
+.ncu-tab-btn:focus {
+  outline: none;
+}
+
 .ncu-tab-btn:hover {
   color: #f3f4f6;
   background: #374151;
