@@ -1,11 +1,14 @@
-import { Component } from 'react';
+import { Component, lazy, Suspense, useState } from 'react';
 import useTraceStore from './store/traceStore';
+import useNcuStore from './store/ncuStore';
 import FileUploader from './components/FileUploader';
 import TraceViewer from './components/TraceViewer';
 import TraceSelector from './components/TraceSelector';
 import AddTraceButton from './components/AddTraceButton';
 import UpdateBanner from './components/UpdateBanner';
 import './App.css';
+
+const NcuView = lazy(() => import('./components/ncu/NcuView'));
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -82,8 +85,17 @@ class ErrorBoundary extends Component {
 
 const AppContent = () => {
   const { traces, fileName, isLoading, error, progress } = useTraceStore();
+  const { files: ncuFiles, isLoading: ncuLoading, error: ncuError } = useNcuStore();
+  const [activeMode, setActiveMode] = useState('trace'); // 'trace' | 'ncu'
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  if (isLoading) {
+  const hasTraces = traces.length > 0;
+  const hasNcu = ncuFiles.length > 0;
+
+  // Auto-switch to NCU mode when first NCU file is loaded and no trace is active
+  // (handled by rendering logic below)
+
+  if (isLoading || ncuLoading) {
     return (
       <div className="loading-screen">
         <div className="spinner-large" />
@@ -169,12 +181,12 @@ const AppContent = () => {
     );
   }
 
-  if (error) {
+  if (error || ncuError) {
     return (
       <div className="error-screen">
         <div className="error-icon">⚠</div>
         <h2>Error Processing File</h2>
-        <p>{error}</p>
+        <p>{error || ncuError}</p>
         <button onClick={() => window.location.reload()}>Try Again</button>
         <style>{`
           .error-screen {
@@ -231,28 +243,94 @@ const AppContent = () => {
     );
   }
 
-  if (traces.length === 0) {
+  if (!hasTraces && !hasNcu) {
     return <FileUploader />;
   }
+
+  // Determine effective mode: default to ncu if no traces, trace if no ncu files
+  const effectiveMode = hasTraces && hasNcu
+    ? activeMode
+    : hasNcu ? 'ncu' : 'trace';
+
+  const ncuFileName = hasNcu ? ncuFiles[ncuFiles.length - 1].fileName : null;
+
+  const displayFileName = effectiveMode === 'trace' ? fileName : ncuFileName;
+
+  const toggleSidebar = () => setSidebarOpen(o => !o);
 
   return (
     <div className="app-with-traces">
       <header className="app-trace-header">
-        <div className="header-content">
+        <div className="header-left">
           <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Perfessor Logo" className="app-logo" />
           <h1>Perfessor</h1>
-          {fileName && <span className="file-name">{fileName}</span>}
+
+          {(hasTraces || hasNcu) && (
+            <>
+              <div className="header-divider" />
+              <button
+                className={`sidebar-panel-btn ${sidebarOpen ? 'active' : ''}`}
+                onClick={toggleSidebar}
+                title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                  <rect x="0" y="0" width="4" height="14" rx="1" fill="#9ca3af"/>
+                  <rect x="5.5" y="0" width="8.5" height="14" rx="1" fill="#9ca3af"/>
+                </svg>
+              </button>
+              <div className="app-mode-switcher">
+                {(hasTraces || !hasNcu) && (
+                  <button
+                    className={`mode-btn ${effectiveMode === 'trace' ? 'active' : ''}`}
+                    onClick={() => setActiveMode('trace')}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                    PyTorch Trace
+                  </button>
+                )}
+                {(hasNcu || !hasTraces) && (
+                  <button
+                    className={`mode-btn ${effectiveMode === 'ncu' ? 'active' : ''}`}
+                    onClick={() => setActiveMode('ncu')}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="2" y="3" width="20" height="14" rx="2" />
+                      <path d="M8 21h8M12 17v4" />
+                    </svg>
+                    NCU Report
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="header-right">
+          {displayFileName && <span className="file-name">{displayFileName}</span>}
+          <AddTraceButton />
         </div>
       </header>
-      <div className="app-body">
-        <div className="app-sidebar">
-          <AddTraceButton />
-          <TraceSelector />
+
+      {effectiveMode === 'ncu' ? (
+        <div className="app-ncu-body">
+          <Suspense fallback={<div style={{ padding: '2rem', color: '#9ca3af' }}>Loading NCU viewer...</div>}>
+            <NcuView sidebarOpen={sidebarOpen} />
+          </Suspense>
         </div>
-        <div className="app-main">
-          <TraceViewer />
+      ) : (
+        <div className="app-body">
+          {sidebarOpen && (
+            <div className="app-sidebar">
+              <TraceSelector />
+            </div>
+          )}
+          <div className="app-main">
+            <TraceViewer />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

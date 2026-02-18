@@ -82,7 +82,8 @@ body {
 
 /* App with traces layout */
 .app-with-traces {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -91,33 +92,61 @@ body {
   width: 100%;
   background: #1f2937;
   border-bottom: 2px solid #374151;
-  padding: 1rem 2rem;
+  padding: 0.6rem 1.5rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 56px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   flex-shrink: 0;
 }
 
-.app-trace-header .header-content {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.header-divider {
+  width: 1px;
+  height: 24px;
+  background: #374151;
+  margin: 0 0.25rem;
+  flex-shrink: 0;
 }
 
 .app-trace-header .app-logo {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .app-trace-header h1 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #f3f4f6;
+  white-space: nowrap;
 }
 
 .app-trace-header .file-name {
-  font-size: 0.875rem;
-  color: #9ca3af;
+  font-size: 0.8rem;
+  color: #6b7280;
   font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
 }
 
 .app-body {
@@ -126,8 +155,38 @@ body {
   overflow: hidden;
 }
 
+/* Sidebar panel toggle in header */
+.sidebar-panel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.sidebar-panel-btn:hover {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+.sidebar-panel-btn.active {
+  color: #e5e7eb;
+}
+
+.sidebar-panel-btn:focus {
+  outline: none;
+}
+
 .app-sidebar {
-  width: 280px;
+  width: 400px;
   background: #111827;
   border-right: 1px solid #374151;
   display: flex;
@@ -137,18 +196,6 @@ body {
   overflow-y: auto;
 }
 
-.app-sidebar .add-trace-button-container {
-  padding: 1rem;
-  border-bottom: 1px solid #374151;
-}
-
-.app-sidebar .add-trace-button {
-  width: 100%;
-  justify-content: center;
-  padding: 0.75rem;
-  font-size: 0.875rem;
-}
-
 .app-sidebar .trace-selector {
   margin: 0;
   flex: 1;
@@ -156,6 +203,84 @@ body {
 
 .app-main {
   flex: 1;
+  overflow-y: auto;
   overflow-x: hidden;
   background: #111827;
+}
+
+/* Mode switcher — prominent segmented control */
+.app-mode-switcher {
+  display: flex;
+  background: #111827;
+  border: 1.5px solid #4f46e5;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 18px;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.mode-btn + .mode-btn {
+  border-left: 1.5px solid #4f46e5;
+}
+
+.mode-btn:focus {
+  outline: none;
+}
+
+.mode-btn:hover {
+  color: #e5e7eb;
+  background: #1e1b4b;
+}
+
+.mode-btn.active {
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 600;
+}
+
+.mode-btn svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.mode-btn.active svg {
+  opacity: 1;
+}
+
+/* NCU body layout */
+.app-ncu-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-ncu-body .ncu-layout {
+  flex: 1;
+  height: calc(100vh - 56px);
+}
+
+/* AddTraceButton in header */
+.header-right .add-trace-button-container {
+  margin: 0;
+}
+
+.header-right .add-trace-button {
+  padding: 6px 14px;
+  font-size: 13px;
+  white-space: nowrap;
 }

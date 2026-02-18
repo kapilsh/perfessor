@@ -38,7 +38,7 @@
 
 .export-button {
   padding: 0.5rem 1.5rem;
-  background: #4CAF50;
+  background: #6366f1;
   color: white;
   border: none;
   border-radius: 6px;
@@ -50,7 +50,7 @@
 }
 
 .export-button:hover {
-  background: #45a049;
+  background: #4f46e5;
 }
 
 .kernel-stats {

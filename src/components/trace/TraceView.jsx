@@ -184,18 +184,11 @@ const TraceView = () => {
           </div>
         </div>
 
-        <div className="trace-info">
-          <p>
-            The trace viewer uses <a href="https://ui.perfetto.dev" target="_blank" rel="noopener noreferrer">
-              Perfetto UI
-            </a> for interactive timeline visualization.
-          </p>
-          {loadingStatus && (
-            <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginTop: '0.5rem' }}>
-              {loadingStatus}
-            </p>
-          )}
-        </div>
+        {loadingStatus && (
+          <div className="trace-info">
+            <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>{loadingStatus}</p>
+          </div>
+        )}
       </Card>
 
       <div className="perfetto-container">

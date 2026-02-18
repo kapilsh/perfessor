@@ -1,0 +1,801 @@
+/* ===== NCU Viewer Layout ===== */
+.ncu-layout {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  background: #111827;
+  color: #f3f4f6;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+/* ===== Sidebar ===== */
+.ncu-sidebar {
+  width: 400px;
+  min-width: 240px;
+  flex-shrink: 0;
+  background: #111827;
+  border-right: 1px solid #374151;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ncu-sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #374151;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #1f2937;
+}
+
+.ncu-sidebar-header h3 {
+  margin: 0 0 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ncu-kernel-search,
+.ncu-kernel-filter {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: #374151;
+  border: 1px solid #4b5563;
+  border-radius: 6px;
+  color: #f3f4f6;
+  font-size: 0.875rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ncu-kernel-search:focus,
+.ncu-kernel-filter:focus {
+  border-color: #4CAF50;
+}
+
+.ncu-kernel-filter option {
+  background: #1f2937;
+}
+
+/* ===== Sidebar Action Buttons ===== */
+.ncu-sidebar-actions {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #374151;
+  background: #1f2937;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ncu-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  background: #374151;
+  border: 1px solid #4b5563;
+  border-radius: 6px;
+  color: #d1d5db;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.ncu-action-btn:hover {
+  background: #4b5563;
+  color: #f3f4f6;
+}
+
+.ncu-action-btn.active {
+  background: #166534;
+  border-color: #4CAF50;
+  color: #4ade80;
+}
+
+.ncu-action-btn svg {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.ncu-action-btn.active svg {
+  opacity: 1;
+}
+
+.ncu-baseline-tag {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  padding: 2px 8px;
+  background: #111827;
+  border-radius: 4px;
+  border: 1px solid #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ===== Kernel List ===== */
+.ncu-kernel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ncu-kernel-item {
+  padding: 10px 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #1f2937;
+  transition: background 0.1s;
+}
+
+.ncu-kernel-item:hover {
+  background: #1f2937;
+}
+
+.ncu-kernel-item.active {
+  background: #1f2937;
+  border-left: 3px solid #4CAF50;
+}
+
+.ncu-kernel-item.compare-selected {
+  background: #1f2937;
+  border-left: 3px solid #60a5fa;
+}
+
+.ncu-kernel-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #f3f4f6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.ncu-kernel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.ncu-kernel-meta span {
+  background: #374151;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Kernel type badge — per-type color */
+.ncu-type-tag {
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.ncu-type-gemm        { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+.ncu-type-conv        { background: rgba(45,212,191,0.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,0.25); }
+.ncu-type-reduce      { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+.ncu-type-elementwise { background: rgba(74,222,128,0.12);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+.ncu-type-softmax     { background: rgba(244,114,182,0.12); color: #f472b6; border: 1px solid rgba(244,114,182,0.25); }
+.ncu-type-norm        { background: rgba(251,146,60,0.12);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+.ncu-type-attention   { background: rgba(56,189,248,0.12);  color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); }
+.ncu-type-rng         { background: rgba(192,132,252,0.12); color: #c084fc; border: 1px solid rgba(192,132,252,0.25); }
+.ncu-type-memory      { background: rgba(34,211,238,0.1);   color: #22d3ee; border: 1px solid rgba(34,211,238,0.22); }
+.ncu-type-compute     { background: rgba(156,163,175,0.1);  color: #9ca3af; border: 1px solid rgba(156,163,175,0.2); }
+
+/* Grid/Block dim tags */
+.ncu-dim-tag {
+  background: rgba(96,165,250,0.08);
+  color: #93c5fd;
+  border: 1px solid rgba(96,165,250,0.18);
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  font-size: 0.65rem;
+}
+
+/* Duration tag */
+.ncu-dur-tag {
+  background: rgba(251,191,36,0.08);
+  color: #fcd34d;
+  border: 1px solid rgba(251,191,36,0.18);
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  font-size: 0.65rem;
+}
+
+.ncu-file-group {
+  list-style: none;
+}
+
+.ncu-file-group-header {
+  padding: 6px 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  background: #1f2937;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #374151;
+  gap: 8px;
+}
+
+.ncu-file-group-header ul {
+  padding: 0;
+}
+
+.ncu-file-kernel-count {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  background: #374151;
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* ===== Detail Panel ===== */
+.ncu-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  background: #111827;
+}
+
+.ncu-detail-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+/* ===== Tab Bar (matches Navigation.css style) ===== */
+.ncu-tab-nav {
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  padding: 0 1rem;
+  display: flex;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.ncu-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #9ca3af;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+  outline: none;
+}
+
+.ncu-tab-btn svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.ncu-tab-btn.active svg,
+.ncu-tab-btn:hover svg {
+  opacity: 1;
+}
+
+.ncu-tab-btn:focus {
+  outline: none;
+}
+
+.ncu-tab-btn:hover {
+  color: #f3f4f6;
+  background: #374151;
+}
+
+.ncu-tab-btn.active {
+  color: #4CAF50;
+  border-bottom-color: #4CAF50;
+}
+
+/* ===== Section Content ===== */
+.ncu-section-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.ncu-loading {
+  padding: 2rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+/* ===== Section Titles ===== */
+.ncu-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  margin: 0 0 1.25rem;
+}
+
+.ncu-subsection-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.ncu-kernel-meta-info {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-bottom: 1.25rem;
+}
+
+/* ===== Metric Cards ===== */
+.ncu-metric-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ncu-metric-card {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  min-width: 140px;
+}
+
+.ncu-metric-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.ncu-metric-unit {
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin-left: 4px;
+  opacity: 0.6;
+}
+
+.ncu-metric-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.ncu-metric-comparison {
+  font-size: 0.75rem;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.ncu-better { color: #4ade80; }
+.ncu-worse  { color: #f87171; }
+
+/* Utilization colors matching perfessor theme */
+.ncu-color-green  { color: #4CAF50; }
+.ncu-color-yellow { color: #fbbf24; }
+.ncu-color-red    { color: #f87171; }
+.ncu-color-blue   { color: #60a5fa; }
+.ncu-color-orange { color: #fb923c; }
+
+/* ===== Table Controls (search + export) ===== */
+.ncu-table-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ncu-table-search {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.45rem 0.875rem;
+  background: #374151;
+  border: 1px solid #4b5563;
+  border-radius: 6px;
+  color: #f3f4f6;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.ncu-table-search:focus {
+  border-color: #6366f1;
+}
+
+.ncu-table-export-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 1rem;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.ncu-table-export-btn:hover {
+  background: #4f46e5;
+}
+
+.ncu-table-export-btn:focus {
+  outline: none;
+}
+
+.ncu-table-count {
+  font-size: 0.8rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+/* ===== Metrics Table ===== */
+.ncu-metric-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.ncu-metric-table th {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #374151;
+  background: #1f2937;
+}
+
+.ncu-metric-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #1f2937;
+  color: #f3f4f6;
+}
+
+.ncu-metric-table tr:hover td {
+  background: #1f2937;
+}
+
+.ncu-unit-col  { color: #6b7280; width: 100px; }
+.ncu-value-col { text-align: right; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; width: 140px; }
+
+.ncu-metric-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ncu-metric-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  background: #374151;
+  border-radius: 50%;
+  font-size: 9px;
+  color: #9ca3af;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+/* ===== Hint Boxes ===== */
+.ncu-hint-box {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ncu-hint-opt {
+  background: rgba(251, 146, 60, 0.08);
+  border: 1px solid rgba(251, 146, 60, 0.25);
+}
+
+.ncu-hint-inf {
+  background: rgba(96, 165, 250, 0.06);
+  border: 1px solid rgba(96, 165, 250, 0.18);
+}
+
+.ncu-hint-label {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.ncu-hint-label-opt {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
+.ncu-hint-label-inf {
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.ncu-hint-section {
+  opacity: 0.55;
+  margin-right: 4px;
+}
+
+/* ===== Two Column Layout ===== */
+.ncu-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.ncu-chart-container {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.ncu-chart-container h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem;
+}
+
+/* ===== Summary Table ===== */
+.ncu-summary-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.ncu-summary-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ncu-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.ncu-stat-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.ncu-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.ncu-summary-table th {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  border-bottom: 1px solid #374151;
+  background: #1f2937;
+}
+
+.ncu-summary-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.ncu-summary-row {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.ncu-summary-row:hover td {
+  background: #1f2937;
+}
+
+.ncu-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.ncu-badge-opt {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
+.ncu-badge-inf {
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.col-type    { width: 70px; }
+.col-kernel  { width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.col-section { width: 200px; color: #9ca3af; }
+.col-hint    { color: #f3f4f6; }
+
+/* ===== Session Table ===== */
+.ncu-session-section {
+  margin-bottom: 1.5rem;
+}
+
+.ncu-session-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4CAF50;
+  margin: 0 0 0.5rem;
+}
+
+.ncu-session-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.ncu-session-label {
+  padding: 0.5rem 0.75rem;
+  color: #9ca3af;
+  width: 240px;
+  border-bottom: 1px solid #1f2937;
+}
+
+.ncu-session-value {
+  padding: 0.5rem 0.75rem;
+  color: #f3f4f6;
+  border-bottom: 1px solid #1f2937;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+
+/* ===== Comparison Grid ===== */
+.ncu-comparison-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #374151;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.875rem;
+}
+
+.ncu-comparison-header,
+.ncu-comparison-row {
+  display: flex;
+  background: #111827;
+}
+
+.ncu-comparison-header {
+  background: #1f2937;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.ncu-comparison-metric-label {
+  flex: 0 0 220px;
+  padding: 0.625rem 0.875rem;
+  border-right: 1px solid #374151;
+  color: #9ca3af;
+}
+
+.ncu-comparison-kernel-header {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  border-right: 1px solid #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #4CAF50;
+}
+
+.ncu-comparison-cell {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  border-right: 1px solid #374151;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.8rem;
+}
+
+.ncu-comparison-best  { color: #4ade80; font-weight: 600; }
+.ncu-comparison-worst { color: #f87171; }
+
+/* ===== Source Code Table ===== */
+.ncu-source-container { overflow-x: auto; }
+
+.ncu-source-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.ncu-source-table th,
+.ncu-source-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #1f2937;
+  vertical-align: top;
+}
+
+.ncu-source-table th {
+  background: #1f2937;
+  color: #6b7280;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ncu-col-address { width: 90px; font-family: monospace; color: #60a5fa; }
+.ncu-col-sass    { width: 35%; }
+.ncu-col-ptx     { width: 35%; }
+.ncu-col-source  { width: 160px; }
+
+.ncu-source-table pre {
+  margin: 0;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  color: #d1d5db;
+  white-space: pre-wrap;
+}
+
+.ncu-source-loc {
+  font-size: 0.7rem;
+  color: #4CAF50;
+  cursor: help;
+  white-space: nowrap;
+}
+
+/* ===== Misc ===== */
+.ncu-error-msg {
+  color: #f87171;
+  padding: 1rem;
+}
+
+.ncu-empty-msg {
+  color: #6b7280;
+  text-align: center;
+  padding: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .ncu-two-col { grid-template-columns: 1fr; }
+  .ncu-sidebar { width: 240px; }
+}

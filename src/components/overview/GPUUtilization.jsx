@@ -10,9 +10,9 @@ const GPUUtilization = () => {
   }
 
   const getUtilizationColor = (util) => {
-    if (util >= 70) return '#4CAF50';
-    if (util >= 40) return '#FF9800';
-    return '#F44336';
+    if (util >= 70) return '#4ade80';
+    if (util >= 40) return '#fbbf24';
+    return '#f87171';
   };
 
   const data = [
@@ -27,17 +27,19 @@ const GPUUtilization = () => {
     <Card title="GPU Utilization">
       <ResponsiveContainer width="100%" height={120}>
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2a3a5e" />
           <XAxis
             type="number"
             domain={[0, 100]}
-            stroke="#9ca3af"
-            label={{ value: 'Utilization (%)', position: 'insideBottom', offset: -5, fill: '#9ca3af' }}
+            stroke="#a0a0b0"
+            tick={{ fill: '#a0a0b0' }}
+            label={{ value: 'Utilization (%)', position: 'insideBottom', offset: -5, fill: '#e0e0e0' }}
           />
           <YAxis
             type="category"
             dataKey="name"
-            stroke="#9ca3af"
+            stroke="#a0a0b0"
+            tick={{ fill: '#e0e0e0' }}
             width={110}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]}>
@@ -48,7 +50,7 @@ const GPUUtilization = () => {
               dataKey="value"
               position="right"
               formatter={(value) => `${value.toFixed(1)}%`}
-              style={{ fill: '#f3f4f6', fontWeight: 600 }}
+              style={{ fill: '#e0e0e0', fontWeight: 600 }}
             />
           </Bar>
         </BarChart>

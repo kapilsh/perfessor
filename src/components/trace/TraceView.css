@@ -25,7 +25,7 @@
 
 .control-button {
   padding: 0.5rem 1rem;
-  background: #4CAF50;
+  background: #4b5563;
   color: white;
   border: none;
   border-radius: 6px;
@@ -37,20 +37,19 @@
 }
 
 .control-button:hover {
-  background: #45a049;
+  background: #6b7280;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
 .control-button.primary {
-  background: #2196F3;
+  background: #6366f1;
   font-weight: 600;
   padding: 0.625rem 1.25rem;
 }
 
 .control-button.primary:hover {
-  background: #1976D2;
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.4);
+  background: #4f46e5;
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
 }
 
 .trace-info {
